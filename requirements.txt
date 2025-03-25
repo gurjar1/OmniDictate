@@ -6,5 +6,4 @@ pynput
 ctranslate2>=3.17  # Pin ctranslate2 to a known working version
 transformers
 sentencepiece
-pyspellchecker
 pywinauto

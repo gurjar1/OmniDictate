@@ -13,10 +13,17 @@ This project provides a real-time dictation tool for Windows, built using the `f
     *   "delete last *n* words": Deletes the last *n* words. (e.g., "delete last three words")
     *   "new line" or "next line": Inserts a new line.
     *   Punctuation: Say punctuation marks like "question mark", "comma", "period", etc., to insert them. See the "Supported Punctuation" section below.
-*   **Typo Correction:** Basic typo correction using the `spellchecker` library.
 *   **Optimized for Speed:** Uses `faster-whisper` and threading for low latency.
 *   **Uses Default Audio Input:** Automatically uses your system's default audio input device.
 *    **Hallucination Mitigation**: The script is configured to minimize the occurrence of repetitive or nonsensical text.
+
+## Minimum System Requirements
+
+*   **OS:** Windows 10 or 11
+*   **Processor:** Intel Core i5 or equivalent (quad-core or better)
+*   **RAM:** 8GB (16GB+ recommended)
+*   **GPU (Recommended):** NVIDIA GPU with CUDA support (4GB+ VRAM, 6GB+ for larger models)
+*   **Storage:** Enough space for the Whisper model.
 
 ## Requirements
 
@@ -164,6 +171,37 @@ The script currently uses the `large-v3` model. You can change this to a differe
 
 3.  **Save the file.** The script will automatically download the model on first use.
 
+### Changing the Transcription Language
+
+By default, this script is configured for **English (`en`)** transcription only. To transcribe other languages supported by Whisper:
+
+1.  **Locate the `process_audio_buffer` function** in the `dictation.py` file.
+2.  **Find the `model.transcribe` line** within that function. It looks like this:
+
+    ```python
+    segments, info = model.transcribe(audio_float32, beam_size=5, language="en", temperature=0.0, condition_on_previous_text=False)
+    ```
+
+3.  **Change the `language="en"` parameter** to the appropriate two-letter language code for the language you want to transcribe.
+
+    *   Example for **Hindi**: `language="hi"`
+    *   Example for **Spanish**: `language="es"`
+    *   Example for **French**: `language="fr"`
+
+    The modified line would look like this (for Hindi):
+
+    ```python
+    segments, info = model.transcribe(audio_float32, beam_size=5, language="hi", temperature=0.0, condition_on_previous_text=False)
+    ```
+
+4.  **Save the `dictation.py` file.**
+
+**Important Notes:**
+
+*   The standard Whisper models used by `faster-whisper` (like `large-v3`, `medium`, etc.) are **multilingual**. You generally *do not* need to download a different model file just to change the language.
+*   Specifying the correct language code helps the model perform more accurately and potentially faster for that specific language.
+*   Refer to the Whisper documentation for a list of supported languages and their corresponding two-letter codes: [https://github.com/openai/whisper#available-models-and-languages](https://github.com/openai/whisper#available-models-and-languages)
+
 ### Microphone Sample Rate
 
 Ensure your microphone is set to 16000 Hz in Windows sound settings:
@@ -199,14 +237,6 @@ Ensure your microphone is set to 16000 Hz in Windows sound settings:
             pythoncom.CoUninitialize()  # Add this line
     ```
    This ensures proper COM initialization and cleanup for `pywinauto`. This should prevent COM-related errors. If you still encounter issues, make sure no other applications are interfering with COM.
-
-## Minimum System Requirements
-
-*   **OS:** Windows 10 or 11
-*   **Processor:** Intel Core i5 or equivalent (quad-core or better)
-*   **RAM:** 8GB (16GB+ recommended)
-*   **GPU (Recommended):** NVIDIA GPU with CUDA support (4GB+ VRAM, 6GB+ for larger models)
-*   **Storage:** Enough space for the Whisper model.
 
 ## License
 
