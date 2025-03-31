@@ -1,0 +1,11 @@
+numpy
+torch
+sounddevice
+faster-whisper
+pynput
+ctranslate2>=3.17
+transformers
+sentencepiece
+pywinauto
+PySide6
+pywin32
