@@ -1,4 +1,4 @@
-﻿#![Logo](images/App_icon.png) OmniDictate: Real-time AI Dictation GUI for Windows 
+﻿# OmniDictate: Real-time AI Dictation GUI for Windows ![Logo](images/App_icon.png)
 
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
