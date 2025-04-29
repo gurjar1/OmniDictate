@@ -53,7 +53,7 @@ class OmniDictateApp(QMainWindow):
 
         self.setWindowTitle("OmniDictate")
         self.setGeometry(100, 100, 700, 750)
-        
+
         self.settings = QSettings(CONFIG_ORG, CONFIG_APP)
         self.dictation_thread = None
         self.dictation_worker = None
@@ -105,7 +105,6 @@ class OmniDictateApp(QMainWindow):
         print("GUI Initialized.")
 
     # --- UI Creation Methods ---
-    # (Unchanged)
     def create_control_section(self):
         control_group = QGroupBox("Controls")
         control_layout = QHBoxLayout(control_group)
@@ -136,11 +135,21 @@ class OmniDictateApp(QMainWindow):
         self.transcription_display.setReadOnly(True)
         self.transcription_display.setPlaceholderText("Transcribed text will appear here...")
         self.transcription_display.setFixedHeight(100)
+
+        # --- Button Creation ---
+        self.clear_button = QPushButton("Clear Text")
+        self.clear_button.setFixedWidth(100)
         self.copy_button = QPushButton("Copy Text")
         self.copy_button.setFixedWidth(100)
+
+        # --- Layout for Buttons ---
         button_layout = QHBoxLayout()
         button_layout.addStretch()
+        button_layout.addWidget(self.clear_button)
         button_layout.addWidget(self.copy_button)
+
+        # --- Connect Clear Button Signal ---
+        self.clear_button.clicked.connect(self.transcription_display.clear)
         display_layout.addWidget(self.transcription_display)
         display_layout.addLayout(button_layout)
         self.main_layout.addWidget(display_group)
@@ -151,7 +160,7 @@ class OmniDictateApp(QMainWindow):
         row = 0
         config_layout.addWidget(QLabel("Whisper Model:"), row, 0)
         self.model_combo = QComboBox()
-        self.model_combo.addItems(["large-v3", "medium", "small", "base", "tiny"])
+        self.model_combo.addItems(["medium.en", "distil-large-v2", "distil-large-v3", "distil-small.en", "distil-medium.en", "large-v2", "large-v1", "medium", "base.en", "base", "small.en", "small", "tiny.en", "tiny", "large-v3"])
         self.model_combo.setCurrentText(self.loaded_settings.get("model_size", DEFAULT_MODEL_SIZE))
         config_layout.addWidget(self.model_combo, row, 1)
         config_layout.addWidget(QLabel("Language:"), row, 2)
@@ -197,7 +206,6 @@ class OmniDictateApp(QMainWindow):
         self.main_layout.addWidget(config_group)
 
     # --- Settings Management ---
-    # (Unchanged)
     def load_settings(self):
         self.loaded_settings = {
             "model_size": self.settings.value("model_size", DEFAULT_MODEL_SIZE),
@@ -250,7 +258,6 @@ class OmniDictateApp(QMainWindow):
         QMessageBox.information(self, "Settings Restored", "Default settings restored and saved.")
 
     # --- Filter Word Management ---
-    # (Unchanged)
     def add_filter_word(self):
         word = self.filter_add_edit.text().strip()
         if word and not self.filter_list.findItems(word, Qt.MatchFlag.MatchExactly):
@@ -263,7 +270,6 @@ class OmniDictateApp(QMainWindow):
         self.save_settings()
 
     # --- Hotkey Setting Logic ---
-    # (Unchanged)
     def prepare_to_set_key(self, key_type):
         if self.is_dictation_running: QMessageBox.warning(self, "Warning", "Stop dictation first."); return
         if self.setting_key_for: QMessageBox.warning(self, "Warning", f"Already waiting for {self.setting_key_for} key."); return
@@ -313,7 +319,6 @@ class OmniDictateApp(QMainWindow):
         self.set_stop_key_button.setEnabled(enabled and not is_setting_ptt)
 
     # --- VAD Toggle Logic ---
-    # (Unchanged)
     @Slot()
     def toggle_vad(self):
         is_checked = self.vad_toggle_button.isChecked()
@@ -328,7 +333,6 @@ class OmniDictateApp(QMainWindow):
         self.vad_toggle_button.setProperty("vad_on", is_checked); self.style().polish(self.vad_toggle_button)
 
     # --- Slots for Worker Signals ---
-    # (Unchanged)
     @Slot(str)
     def update_status(self, status_text):
         self.status_label.setText(f"Status: {status_text}")
@@ -351,7 +355,6 @@ class OmniDictateApp(QMainWindow):
         else: self.reset_ui_after_stop()
 
     # --- Copy Transcription ---
-    # (Unchanged)
     @Slot()
     def copy_transcription(self):
         clipboard = QApplication.clipboard()
@@ -360,8 +363,6 @@ class OmniDictateApp(QMainWindow):
         self.statusBar.showMessage("Transcription copied to clipboard!", 2000)
 
     # --- GUI Control Methods ---
-    # (Unchanged - start_dictation, stop_dictation, on_thread_finished,
-    # reset_ui_after_stop, set_config_enabled)
     def start_dictation(self):
         if self.is_dictation_running: print("Dictation is already running."); return
         if isinstance(self.dictation_thread, QThread) or isinstance(self.dictation_worker, DictationWorker):
@@ -402,7 +403,6 @@ class OmniDictateApp(QMainWindow):
         print("GUI requesting stop..."); self.update_status("Stopping...")
         self.stop_button.setEnabled(False)
         if self.dictation_worker:
-            # *** Corrected disconnect block ***
             try:
                 self.ptt_signal.disconnect(self.dictation_worker.set_ptt_state)
             except RuntimeError:
@@ -436,7 +436,6 @@ class OmniDictateApp(QMainWindow):
         self.restore_defaults_button.setEnabled(enabled)
 
     # --- Hotkey Handling ---
-    # (Unchanged)
     def start_hotkey_listener(self):
         self.stop_hotkey_listener()
         print("Starting hotkey listener thread...")
@@ -480,7 +479,6 @@ class OmniDictateApp(QMainWindow):
          QMessageBox.warning(self, "Hotkey Listener Error", f"Error in hotkey listener: {error_msg}\nListener might need restarting.")
 
     # --- Cleanup on Close ---
-    # *** Corrected closeEvent ***
     def closeEvent(self, event):
         """Ensure threads are stopped when the window is closed."""
         print("Close event triggered.")
@@ -490,7 +488,6 @@ class OmniDictateApp(QMainWindow):
         if isinstance(self.dictation_thread, QThread) and self.dictation_thread.isRunning():
              print("Waiting for dictation thread...")
              start_wait = time.time()
-             # *** Corrected while loop syntax ***
              while self.dictation_thread.isRunning() and (time.time() - start_wait) < 1.5:
                  QApplication.processEvents()
                  time.sleep(0.05)
@@ -498,7 +495,6 @@ class OmniDictateApp(QMainWindow):
         if isinstance(self.hotkey_thread, QThread) and self.hotkey_thread.isRunning():
              print("Waiting for hotkey thread...")
              start_wait = time.time()
-             # *** Corrected while loop syntax ***
              while self.hotkey_thread.isRunning() and (time.time() - start_wait) < 0.7:
                  QApplication.processEvents()
                  time.sleep(0.05)
@@ -507,27 +503,20 @@ class OmniDictateApp(QMainWindow):
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    # --- Remove Deprecated High DPI Attributes ---
-    # QApplication.setAttribute(Qt.AA_EnableHighDpiScaling) # Deprecated
-    # QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps) # Deprecated
-
     app = QApplication(sys.argv)
 
- # --- Set App Icon EARLY ---
     try:
         basedir = os.path.dirname(__file__)
         icon_path = os.path.join(basedir, "icon.ico")
         if os.path.exists(icon_path):
             app_icon = QIcon(icon_path)
-            app.setWindowIcon(app_icon) # Set for the whole application
+            app.setWindowIcon(app_icon)
             print(f"Application icon set from: {icon_path}")
         else:
             print(f"Warning: Icon file not found at {icon_path}")
     except Exception as e:
         print(f"Error setting application icon: {e}")
-    # --- End Set App Icon ---
 
-    # --- Apply Stylesheet ---
     try:
         basedir = os.path.dirname(__file__)
         style_path = os.path.join(basedir, "style.qss")
@@ -535,10 +524,6 @@ if __name__ == "__main__":
         print("Stylesheet applied.")
     except FileNotFoundError: print(f"Stylesheet '{style_path}' not found.")
     except Exception as e: print(f"Error loading stylesheet: {e}")
-
-    # --- Apply Font (Optional) ---
-    # font = QFont("Segoe UI", 10)
-    # app.setFont(font)
 
     window = OmniDictateApp()
     window.show()
