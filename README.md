@@ -1,10 +1,5 @@
-<<<<<<< HEAD
-﻿# OmniDictate: Real-time AI Dictation GUI for Windows ![Logo](images/App_icon.png)
-
-=======
-﻿# OmniDictate: Real-time AI Dictation GUI for Windows
+# OmniDictate: Real-time AI Dictation GUI for Windows
 ![Logo](images/App_icon.png)
->>>>>>> 453c2f1 (Initial commit: Add OmniDictate GUI application files)
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 
@@ -129,7 +124,6 @@ Pre-built versions for Windows are available below.
 4.  **Install CUDA Toolkit:** Run the installer (Custom > Select "CUDA" components).
 5.  **cuDNN:** The CUDA Toolkit installer *usually* includes the necessary cuDNN files. A separate download/install is typically *not* required.
 6.  **Verify PATH:** Ensure CUDA `bin` and `libnvvp` directories are in your system PATH environment variable (see Troubleshooting section if needed). Verify by running `nvcc --version` in a *new* terminal after installation.
->>>>>>> 453c2f1 (Initial commit: Add OmniDictate GUI application files)
 
 **(Optional) Building from Source:**
 
