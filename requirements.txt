@@ -9,3 +9,6 @@ sentencepiece
 pywinauto
 PySide6
 pywin32
+huggingface_hub>=0.19.0
+noisereduce
+webrtcvad

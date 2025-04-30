@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 ﻿# OmniDictate: Real-time AI Dictation GUI for Windows ![Logo](images/App_icon.png)
 
+=======
+﻿# OmniDictate: Real-time AI Dictation GUI for Windows
+![Logo](images/App_icon.png)
+>>>>>>> 453c2f1 (Initial commit: Add OmniDictate GUI application files)
 
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
 
@@ -53,6 +58,7 @@ Pre-built versions for Windows are available below.
 
 *   **Operating System:** Windows 10 or 11 (64-bit recommended).
 *   **NVIDIA GPU (Highly Recommended):** CUDA-enabled GPU (4GB+ VRAM, 6GB+ for larger models) for acceptable performance. CPU mode is supported but significantly slower.
+<<<<<<< HEAD
 *   **CUDA Toolkit & cuDNN (CRITICAL for GPU):** Must be installed correctly *before* installing PyTorch if building from source, or before running the packaged application if using GPU mode. See detailed instructions below.
 *   **Microsoft Visual C++ Redistributable:** Required on machines where the application will run. Download and install the "Visual Studio 2015-2022 Redistributable (x64)" from Microsoft's website.
 
@@ -89,6 +95,41 @@ Pre-built versions for Windows are available below.
 4.  **Install CUDA Toolkit:** Run installer (Custom > Select "CUDA" components).
 5.  **cuDNN:** Usually included with the CUDA Toolkit installer. Separate download/install typically *not* needed.
 6.  **Verify PATH:** Ensure CUDA `bin` and `libnvvp` directories are in your system PATH. Verify by running `nvcc --version` in a *new* terminal.
+=======
+*   **CUDA Toolkit & cuDNN (CRITICAL for GPU):** Must be installed correctly *before* installing PyTorch. See detailed steps in the Installation section.
+*   **Microsoft Visual C++ Redistributable:** Required on machines where the application will run. Download and install the "Visual Studio 2015-2022 Redistributable (x64)" from Microsoft's website.
+
+## Installation & Setup
+
+**Option 1: Using the Installer (Recommended)**
+
+1.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download the latest `OmniDictate_Setup_vX.Y.Z.exe` file.
+2.  **Install Prerequisites:**
+    *   Install the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)** if you don't already have it.
+    *   **If using GPU:** Ensure you have the correct NVIDIA Driver, CUDA Toolkit, and cuDNN installed *before* running the OmniDictate installer (see "CUDA/cuDNN Setup for GPU Users" below).
+3.  **Run Installer:** Double-click the downloaded `OmniDictate_Setup_*.exe` and follow the installation prompts. Administrator privileges are required to install to Program Files.
+4.  **Launch:** Use the Start Menu or Desktop shortcut created by the installer.
+
+**Option 2: Using the Portable ZIP**
+
+1.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download the latest `OmniDictate_vX.Y.Z_Windows_x64.zip` file.
+2.  **Install Prerequisites:**
+    *   Install the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)** if you don't already have it.
+    *   **If using GPU:** Ensure you have the correct NVIDIA Driver, CUDA Toolkit, and cuDNN installed (see "CUDA/cuDNN Setup for GPU Users" below).
+3.  **Extract:** Unzip the downloaded file to a location of your choice (e.g., `C:\Tools\OmniDictate`).
+4.  **Run:** Navigate into the extracted `OmniDictate` folder and double-click `OmniDictate.exe`.
+
+**CUDA/cuDNN Setup for GPU Users (CRITICAL)**
+
+*This must be done *before* installing PyTorch if building from source, or before running the packaged `.exe` if using a pre-built version.*
+
+1.  **NVIDIA Driver:** Install the latest driver for your GPU from NVIDIA's website.
+2.  **Determine Required CUDA Version:** Check the PyTorch website ([https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/)) for the recommended CUDA version compatible with the PyTorch version used by OmniDictate (check `requirements.txt` if building from source, or assume a recent version like 11.8 or 12.x for pre-built).
+3.  **Download CUDA Toolkit:** Download the *matching* CUDA Toolkit version from the [NVIDIA CUDA Toolkit Archive](https://developer.nvidia.com/cuda-toolkit-archive).
+4.  **Install CUDA Toolkit:** Run the installer (Custom > Select "CUDA" components).
+5.  **cuDNN:** The CUDA Toolkit installer *usually* includes the necessary cuDNN files. A separate download/install is typically *not* required.
+6.  **Verify PATH:** Ensure CUDA `bin` and `libnvvp` directories are in your system PATH environment variable (see Troubleshooting section if needed). Verify by running `nvcc --version` in a *new* terminal after installation.
+>>>>>>> 453c2f1 (Initial commit: Add OmniDictate GUI application files)
 
 **(Optional) Building from Source:**
 
