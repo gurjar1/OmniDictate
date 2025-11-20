@@ -59,6 +59,14 @@ Pre-built versions for Windows are available below.
 *   **CUDA Toolkit & cuDNN (CRITICAL for GPU):** Must be installed correctly *before* installing PyTorch if building from source, or before running the packaged application if using GPU mode. See detailed instructions below.
 *   **Microsoft Visual C++ Redistributable:** Required on machines where the application will run. Download and install the "Visual Studio 2015-2022 Redistributable (x64)" from Microsoft's website.
 
+### Tested Versions (v2.0.0 Build)
+The pre-built application was compiled with the following versions. If you are building from source or troubleshooting GPU issues, aim for these:
+*   **Python:** 3.11.9
+*   **PyTorch:** 2.6.0+cu126 (CUDA 12.6)
+*   **CUDA Toolkit:** 12.6
+*   **faster-whisper:** 1.1.1
+*   **ctranslate2:** 4.5.0
+
 ## Installation & Setup (Detailed)
 
 *(Choose Installer or Portable ZIP from the [Downloads](#downloads--installation-notes) section above)*
