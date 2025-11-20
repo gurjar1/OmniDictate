@@ -25,7 +25,6 @@ CHUNK_SIZE = int(SAMPLE_RATE * CHUNK_DURATION)
 # CHAR_DELAY passed via __init__
 
 # --- Helper Functions ---
-# (Unchanged - delete_last_n_words_direct, insert_punctuation, insert_new_line)
 def delete_last_n_words_direct(n):
     """Deletes the last n words directly in the active window."""
     try:
@@ -79,6 +78,7 @@ class DictationWorker(QObject):
     status_updated = Signal(str)
     transcription_ready = Signal(str)
     error_occurred = Signal(str)
+    audio_level = Signal(float)
 
     def __init__(self, gui_wid, model_size="large-v3", language="en", vad_enabled=True,
                  silence_threshold=500, silence_duration=0.5, char_delay=0.02,
@@ -86,6 +86,8 @@ class DictationWorker(QObject):
         super().__init__(parent)
         self.gui_wid = gui_wid
         self.model_size = model_size
+        # Ensure language is None if "None" string or empty (for Auto Detect)
+        if language in ["None", ""]: language = None
         self.language_code = language
         self._vad_enabled = vad_enabled
         self.silence_threshold = silence_threshold
@@ -94,9 +96,6 @@ class DictationWorker(QObject):
         self.filter_words = set(word.lower().strip() for word in filter_words) if filter_words else set()
         self.new_line_commands = set(cmd.lower().strip() for cmd in new_line_commands) if new_line_commands else {"new line", "next line"}
 
-        print(f"Worker Init: GUI WID={self.gui_wid}, Model={self.model_size}, Lang={self.language_code}, VAD={self._vad_enabled}")
-        print(f"Worker Init: Silence Thresh={self.silence_threshold}, Frames={self.silence_frames}, Char Delay={self.char_delay}")
-        print(f"Worker Init: Filter Words={self.filter_words}")
         print(f"Worker Init: New Line Cmds={self.new_line_commands}")
 
         self.model = None
@@ -142,7 +141,10 @@ class DictationWorker(QObject):
             self.status_updated.emit(f"Loading model '{self.model_size}'...")
             use_cuda = torch.cuda.is_available(); device = "cuda" if use_cuda else "cpu"; compute_type = "float16" if use_cuda else "int8"
             if not self.model_size: raise ValueError("Model size empty.")
-            self.model = WhisperModel(self.model_size, device=device, compute_type=compute_type)
+            model_path = self.model_size
+            if self.model_size == "large-v3-turbo":
+                model_path = "deepdml/faster-whisper-large-v3-turbo-ct2"
+            self.model = WhisperModel(model_path, device=device, compute_type=compute_type)
             status_msg = f"Model '{self.model_size}' loaded on {device.upper()}."; print(status_msg); self.status_updated.emit(status_msg)
             return True
         except Exception as e: error_msg = f"Error loading model: {e}"; print(error_msg); self.error_occurred.emit(error_msg); self.model = None; return False
@@ -155,27 +157,17 @@ class DictationWorker(QObject):
         self._is_running = True; self.status_updated.emit("Starting...")
         self.audio_buffer = []; self.recording = False; self.vad_active = False; self.frames_since_speech = 0
 
-        # *** CORRECTED QUEUE CLEARING LOOPS ***
+        # Clear queues
         print("Clearing queues...")
         while True:
-            try:
-                self.audio_queue.get_nowait()
-            except queue.Empty:
-                break # Exit loop when queue is empty
-            except Exception as e_q:
-                print(f"Error clearing audio queue item: {e_q}")
-                break # Exit on other errors too
-
+            try: self.audio_queue.get_nowait()
+            except queue.Empty: break
+            except Exception as e_q: print(f"Error clearing audio queue item: {e_q}"); break
         while True:
-            try:
-                self.text_queue.get_nowait()
-            except queue.Empty:
-                break # Exit loop when queue is empty
-            except Exception as e_q:
-                print(f"Error clearing text queue item: {e_q}")
-                break
+            try: self.text_queue.get_nowait()
+            except queue.Empty: break
+            except Exception as e_q: print(f"Error clearing text queue item: {e_q}"); break
         print("Queues cleared.")
-        # *** END CORRECTION ***
 
         self.stop_typing_event.clear()
         if self.typing_thread_instance and self.typing_thread_instance.is_alive(): print("Warning: Typing thread still alive?")
@@ -210,26 +202,17 @@ class DictationWorker(QObject):
             if self.typing_thread_instance.is_alive(): print("Warning: Typing thread did not stop gracefully.")
         self.typing_thread_instance = None
 
-        # *** CORRECTED QUEUE CLEARING LOOPS ***
+        # Clear queues again
         print("Clearing queues...")
         while True:
-            try:
-                self.audio_queue.get_nowait()
-            except queue.Empty:
-                break
-            except Exception as e_q:
-                print(f"Error clearing audio queue item: {e_q}")
-                break
+            try: self.audio_queue.get_nowait()
+            except queue.Empty: break
+            except Exception as e: break
         while True:
-            try:
-                self.text_queue.get_nowait()
-            except queue.Empty:
-                break
-            except Exception as e_q:
-                print(f"Error clearing text queue item: {e_q}")
-                break
+            try: self.text_queue.get_nowait()
+            except queue.Empty: break
+            except Exception as e: break
         print("Queues cleared.")
-        # *** END CORRECTION ***
 
         if self.model:
             print("Unloading model...")
@@ -249,7 +232,6 @@ class DictationWorker(QObject):
 
     @Slot()
     def _check_audio_queue(self):
-        # (Unchanged)
         if not self._is_running: return
         try:
             processed_chunk_count = 0; max_chunks_per_cycle = 5
@@ -257,6 +239,8 @@ class DictationWorker(QObject):
                 raw_audio_chunk = self.audio_queue.get_nowait(); processed_chunk_count += 1
                 try: chunk_np = np.frombuffer(raw_audio_chunk, dtype=np.int16); amplitude = np.abs(chunk_np).mean()
                 except Exception as e: print(f"Error VAD chunk: {e}"); continue
+
+                self.audio_level.emit(amplitude)
 
                 if self._ptt_active:
                     if not self.recording: self.status_updated.emit("Recording (PTT)..."); self.recording = True; self.vad_active = False; self.audio_buffer = []
@@ -273,7 +257,6 @@ class DictationWorker(QObject):
         except Exception as e: error_msg = f"Audio check loop error: {e}"; print(error_msg); self.error_occurred.emit(error_msg)
 
     def _process_audio_buffer(self):
-        # (Unchanged)
         if not self.audio_buffer: return
         buffer_copy = list(self.audio_buffer); self.audio_buffer = []
         try: audio_data = np.concatenate(buffer_copy); audio_float32 = audio_data.astype(np.float32) / 32768.0
@@ -315,7 +298,6 @@ class DictationWorker(QObject):
             if not is_command: self.text_queue.put(processed_text + " ")
 
     def _typing_loop(self):
-        # (Unchanged)
         print("Typing thread started, ID:", threading.get_ident())
         import pythoncom
         pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)

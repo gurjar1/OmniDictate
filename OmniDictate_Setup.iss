@@ -1,11 +1,11 @@
 ; OmniDictate_Setup.iss
-; Script for Inno Setup - v1.3 (Corrected Comments)
+; Script for Inno Setup - v2.0.0
 
 [Setup]
 ; --- Application Identification ---
 AppId={{E71B4146-B5BC-4903-946E-ED954312E31A}} ; Unique GUID (KEEP THIS!)
 AppName=OmniDictate
-AppVersion=1.0.0
+AppVersion=2.0.0
 AppPublisher=KAPIL GURJAR
 AppPublisherURL=https://github.com/gurjar1/OmniDictate
 AppSupportURL=https://github.com/gurjar1/OmniDictate/issues
@@ -23,11 +23,11 @@ ArchitecturesInstallIn64BitMode=x64
 ; Folder where the setup.exe will be created
 OutputDir=InstallerOutput
 ; Name of the setup file
-OutputBaseFilename=OmniDictate_Setup_v1.0.0
+OutputBaseFilename=OmniDictate_Setup_v2.0.0
 ; Icon for setup.exe (ensure icon.ico exists)
 SetupIconFile=icon.ico
 ; Compression settings
-Compression=lzma
+Compression=lzma2/ultra64
 SolidCompression=yes
 ; Appearance
 WizardStyle=modern

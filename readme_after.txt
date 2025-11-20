@@ -16,7 +16,7 @@ OmniDictate has been successfully installed on your computer!
       - Whisper Model Size (larger models are more accurate but slower)
       - VAD Sensitivity (Silence Threshold)
       - Typing Speed (Character Delay)
-      - Global Hotkeys for Push-to-Talk and Stopping
+      - Global Hotkey for Push-to-Talk (PTT)
       - Filter words (to ignore specific repeated phrases)
       - New Line voice commands
   * Settings are saved automatically when changed or when you close the app.

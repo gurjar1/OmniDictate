@@ -9,3 +9,6 @@ build/
 dist/
 InstallerOutput/
 release/
+icon_backup/
+*.7z.*
+*.log

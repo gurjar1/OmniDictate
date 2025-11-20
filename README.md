@@ -7,7 +7,7 @@
 
 **Summary:** Free, open-source, real-time dictation for Windows. Runs locally (no cloud!), uses AI (`faster-whisper`), and types directly into any application via a user-friendly GUI.
 
-![Screenshot](images/app_screenshot.jpg)
+![Screenshot](images/app_screenshot_v2.png)
 
 OmniDictate provides a modern desktop application for real-time speech-to-text on your Windows PC. It utilizes the optimized `faster-whisper` library (based on OpenAI's Whisper) for accurate transcription directly on your machine, ensuring privacy and offline capability. Text is typed directly into your active window.
 
@@ -25,21 +25,26 @@ Pre-built versions for Windows are available below.
 
 **Download Options:**
 
-1.  **Installer (`.exe` - Recommended):** Installs to Program Files and creates shortcuts. Easier for most users. Download from the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases). *(You can attach the smaller setup.exe directly to the GitHub release).*
-2.  **Portable ZIP (`.zip`):** No installation needed. Extract the folder and run `OmniDictate.exe` from inside. Useful if you prefer portable apps or encounter installer issues.
-    *   **Download Link (Google Drive due to GitHub size limits):**
-        [**OmniDictate_v1.0.0_Windows_x64.zip**](https://drive.google.com/file/d/1XAcbFmybJ_XVJNuF4MAk2Kg0oYcE9EnD/view?usp=drive_link)
+1.  **Installer (`.exe` - Recommended):** Installs to Program Files and creates shortcuts. Easier for most users. Download from the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases).
+2.  **Portable ZIP (`.7z` Split Archive):** No installation needed. Useful if you prefer portable apps.
+    *   **Note:** Due to GitHub file size limits, the portable version is split into two parts (`.001` and `.002`).
+    *   **Instructions:**
+        1.  Download **both** parts from the Releases page.
+        2.  Right-click `OmniDictate_Portable.7z.001`.
+        3.  Select "7-Zip" -> "Extract Here" (or use WinRAR).
+        4.  Run `OmniDictate.exe` from the extracted folder.
 
 ## Features
 
-*   **Modern GUI:** User-friendly interface built with PySide6, featuring a dark theme.
+*   **Premium Slate & Glass UI (v2.0):** A stunning, modern interface featuring a dark slate theme with frosted glass accents, designed for clarity and focus.
+*   **Whisper Ultra Support:** Now supports the **`large-v3-turbo`** model for state-of-the-art accuracy with improved speed.
+*   **Streamlined Controls:** Simplified experience with unified VAD/PTT toggle and removal of complex stop hotkeys.
 *   **Real-time Transcription:** Converts speech to text with low latency.
 *   **Local & Private:** All processing happens on your machine; no cloud required.
 *   **Type Anywhere:** Simulates keyboard input into virtually any active Windows application (except OmniDictate itself).
 *   **Configurable Settings:** Adjust model size, language (English only currently enabled), VAD sensitivity, typing delay, hotkeys, and more via the interface. Settings are saved automatically.
 *   **Voice Activity Detection (VAD):** Toggle automatic start/stop based on speech via a GUI button.
 *   **Push-to-Talk (PTT):** Use a configurable global hotkey (Default: Right Shift) for manual control.
-*   **Global Stop Hotkey:** Stop dictation from anywhere (Default: Escape). Configurable via GUI.
 *   **Voice Commands:**
     *   "delete last *n* words"
     *   "new line" / "next line" (configurable)
@@ -69,14 +74,17 @@ Pre-built versions for Windows are available below.
 3.  **Run Installer:** Double-click `OmniDictate_Setup_*.exe`. You may see a Windows SmartScreen warning because the app is unsigned; click "More info" -> "Run anyway". Follow the installation prompts (Admin privileges required).
 4.  **Launch:** Use the Start Menu or Desktop shortcut.
 
-**B. Using the Portable ZIP (`.zip`)**
+**B. Using the Portable ZIP (`.7z` Split Archive)**
 
 1.  **Install Prerequisites:**
     *   Install the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)**.
     *   **If using GPU:** Ensure NVIDIA Driver, CUDA Toolkit, and cuDNN are installed (see "CUDA/cuDNN Setup" below).
-2.  **Download Link (Google Drive due to GitHub size limits):**
-        [**OmniDictate_v1.0.0_Windows_x64.zip**](https://drive.google.com/file/d/1XAcbFmybJ_XVJNuF4MAk2Kg0oYcE9EnD/view?usp=drive_link)
-3.  **Extract:** No installation needed. Extract the downloaded file to a location of your choice (e.g., `C:\Users\yourusername\Downloads\OmniDictate`). Useful if you prefer portable apps or encounter installer issues.
+2.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download **both** `OmniDictate_Portable.7z.001` and `OmniDictate_Portable.7z.002`.
+3.  **Extract:**
+    *   Ensure you have [7-Zip](https://www.7-zip.org/) installed.
+    *   Right-click on the `.001` file.
+    *   Select "7-Zip" -> "Extract Here".
+    *   This will automatically process the second part and extract the full folder.
 4.  **Run:** Open the extracted `OmniDictate` folder and double-click `OmniDictate.exe`. You might see a Windows SmartScreen warning on first run; click "More info" -> "Run anyway".
 
 **C. CUDA/cuDNN Setup for GPU Users (CRITICAL)**
@@ -112,17 +120,17 @@ If you prefer to build from source instead of using the pre-built releases:
     *   **VAD Mode (Default):** Simply speak when the status is "Listening". Transcription starts automatically. Pause speaking to stop recording.
     *   **Push-to-Talk (PTT):** Hold down the configured PTT key (Default: Right Shift). Transcription occurs only while the key is held. This overrides VAD. (Toggle VAD off using the button if you *only* want PTT).
     *   **Output:** Text appears in the active application window (unless it's OmniDictate) and in the "Transcription Output" area in the GUI.
-5.  **Use Commands:** Say "delete last two words", "new line", "comma", etc., during dictation.
-6.  **Stop Dictation:** Click the "Stop Dictation" button or press the configured Stop hotkey (Default: Escape).
+5.  **Use Commands:** Say "delete last *n* words", "new line", "comma", etc., during dictation.
+6.  **Stop Dictation:** Click the "Stop Dictation" button.
 
 ## Configuration via GUI
 
-*   **Model:** Select Whisper model size.
-*   **Language:** Currently locked to English (`en`).
+*   **Model:** Select Whisper model size (including `large-v3-turbo`).
+*   **Language:** Supports **Auto Detection** and multiple languages (English, Spanish, French, German, etc.).
 *   **VAD Toggle:** Enable/disable Voice Activity Detection.
 *   **Silence Threshold:** VAD sensitivity (lower = more sensitive).
 *   **Typing Delay:** Time (seconds) between typed characters.
-*   **Hotkeys (PTT/Stop):** Click "Set" and press the desired key.
+*   **PTT Hotkey:** Click "Set" and press the desired key.
 *   **New Line Commands:** Edit comma-separated phrases.
 *   **Filter Words:** Add/Remove exact phrases to ignore.
 *   **Restore Defaults:** Reset all settings.
@@ -158,4 +166,4 @@ This project is licensed under the [Creative Commons Attribution-NonCommercial 4
 
 (See the `LICENSE` file for full details).
 
-Copyright (c) 2023 Kapil Gurjar
+Copyright (c) 2025 Kapil Gurjar

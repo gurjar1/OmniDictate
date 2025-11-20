@@ -8,34 +8,34 @@ class HotkeyWorker(QObject):
     """Listens for global hotkeys in a separate thread."""
     ptt_pressed_signal = Signal()
     ptt_released_signal = Signal()
-    stop_signal = Signal()
     error_signal = Signal(str)
     key_captured_signal = Signal(object, str)
 
-    def __init__(self, ptt_key_str=None, stop_key_str=None, capture_mode=False, parent=None):
+    def __init__(self, ptt_key_str=None, capture_mode=False, parent=None):
         super().__init__(parent)
         self._is_running = False
         self.listener_thread = None
         self.listener = None
         self.ptt_key_str = ptt_key_str
-        self.stop_key_str = stop_key_str
         self.capture_mode = capture_mode
         self.ptt_key = None
-        self.stop_key = None
         if not self.capture_mode: self._parse_keys()
-        print(f"Hotkey Listener Init: CaptureMode={self.capture_mode}, PTT='{self.ptt_key_str}', Stop='{self.stop_key_str}'")
+        print(f"Hotkey Listener Init: CaptureMode={self.capture_mode}, PTT='{self.ptt_key_str}'")
 
     def _parse_keys(self):
-        default_ptt = keyboard.Key.shift_r; default_stop = keyboard.Key.esc
+        default_ptt = keyboard.Key.shift_r
+        
+        # Parse PTT Key
         if self.ptt_key_str:
-            try: self.ptt_key = eval(self.ptt_key_str, {"keyboard": keyboard, "Key": keyboard.Key, "KeyCode": keyboard.KeyCode})
-            except Exception as e: error_msg = f"Error parsing PTT key '{self.ptt_key_str}': {e}. Using default."; print(error_msg); self.error_signal.emit(error_msg); self.ptt_key = default_ptt
-        else: self.ptt_key = default_ptt
-        if self.stop_key_str:
-            try: self.stop_key = eval(self.stop_key_str, {"keyboard": keyboard, "Key": keyboard.Key, "KeyCode": keyboard.KeyCode})
-            except Exception as e: error_msg = f"Error parsing Stop key '{self.stop_key_str}': {e}. Using default."; print(error_msg); self.error_signal.emit(error_msg); self.stop_key = default_stop
-        else: self.stop_key = default_stop
-        print(f"Hotkey Listener Parsed: PTT Key = {self.ptt_key}, Stop Key = {self.stop_key}")
+            try: 
+                self.ptt_key = eval(self.ptt_key_str, {"keyboard": keyboard, "Key": keyboard.Key, "KeyCode": keyboard.KeyCode})
+            except Exception as e: 
+                error_msg = f"Error parsing PTT key '{self.ptt_key_str}': {e}. Using default."
+                print(error_msg); self.error_signal.emit(error_msg); self.ptt_key = default_ptt
+        else: 
+            self.ptt_key = default_ptt
+            
+        print(f"Hotkey Listener Parsed: PTT Key = {self.ptt_key}")
 
     def key_to_string(self, key):
         if isinstance(key, keyboard.Key): return f'keyboard.Key.{key.name}'
@@ -49,8 +49,14 @@ class HotkeyWorker(QObject):
     def _on_press(self, key):
         if not self._is_running: return False
         if self.capture_mode:
-            try: key_str = self.key_to_string(key); print(f"Captured Key: {key}, String: {key_str}"); self.key_captured_signal.emit(key, key_str); return False
-            except Exception as e: error_msg = f"Error capturing key: {e}"; print(error_msg); self.error_signal.emit(error_msg); return False
+            try: 
+                key_str = self.key_to_string(key)
+                print(f"Captured Key: {key}, String: {key_str}")
+                self.key_captured_signal.emit(key, key_str)
+                return False
+            except Exception as e: 
+                error_msg = f"Error capturing key: {e}"
+                print(error_msg); self.error_signal.emit(error_msg); return False
         else:
             try:
                 if key == self.ptt_key: self.ptt_pressed_signal.emit()
@@ -61,8 +67,7 @@ class HotkeyWorker(QObject):
         if self.capture_mode: return False
         try:
             if key == self.ptt_key: self.ptt_released_signal.emit()
-            if key == self.stop_key: self.stop_signal.emit()
-        except Exception: pass
+        except Exception as e: print(f"Error in on_release: {e}")
 
     def start_listening(self):
         if self.listener_thread and self.listener_thread.is_alive(): return
@@ -73,7 +78,9 @@ class HotkeyWorker(QObject):
             self.listener = keyboard.Listener(on_press=self._on_press, on_release=self._on_release)
             self.listener_thread = threading.Thread(target=self.listener.run, daemon=True)
             self.listener_thread.start(); print("Hotkey listener started.")
-        except Exception as e: error_msg = f"Failed to start listener: {e}"; print(error_msg); self.error_signal.emit(error_msg); self._is_running = False
+        except Exception as e: 
+            error_msg = f"Failed to start listener: {e}"
+            print(error_msg); self.error_signal.emit(error_msg); self._is_running = False
 
     def stop_listening(self):
         if not self._is_running and not self.listener: return

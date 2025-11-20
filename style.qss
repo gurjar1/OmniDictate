@@ -1,200 +1,229 @@
-/* style.qss - Modern Dark Theme for OmniDictate */
+/* style.qss - Premium Slate & Glass Theme v3.2 */
 
-/* Global settings */
+/* --- Global Reset & Base --- */
 QWidget {
-    background-color: #1e1e1e; /* Very dark grey, near black */
-    color: #e0e0e0; /* Off-white text for readability */
-    font-family: "Segoe UI", Arial, sans-serif; /* Clean sans-serif font */
-    font-size: 10pt;
-}
-
-/* Main Window Background (can be slightly different if needed) */
-QMainWindow {
-    background-color: #1c1c1c; /* Can be same or slightly different */
-}
-
-/* Group Boxes for Sectioning */
-QGroupBox {
-    background-color: #2a2a2a; /* Slightly lighter than main background */
-    border: 1px solid #3f3f3f; /* Subtle border */
-    border-radius: 6px;
-    margin-top: 12px; /* More space for title */
-    padding-top: 10px; /* Padding inside the box */
-    padding-left: 5px;
-    padding-right: 5px;
-    padding-bottom: 5px;
-    font-weight: bold;
-    color: #00aaff; /* Vibrant blue for titles */
-}
-
-QGroupBox::title {
-    subcontrol-origin: margin;
-    subcontrol-position: top left;
-    padding: 0 8px; /* Padding around title text */
-    left: 12px; /* Indent title */
-    color: #00aaff; /* Match group box title color */
-    background-color: #2a2a2a; /* Match group box background */
-    border-radius: 3px; /* Slight rounding for title background */
-}
-
-/* Labels */
-QLabel {
-    color: #cccccc; /* Lighter grey for standard labels */
-    background-color: transparent;
-    padding: 3px 0px; /* Vertical padding */
-}
-
-QLabel#statusLabel { /* Status Label */
-    font-size: 12pt;
-    font-weight: bold;
-    padding: 8px;
-    color: #e0e0e0; /* Bright text */
-    border: 1px solid #3f3f3f;
-    border-radius: 4px;
-    background-color: #2a2a2a;
-}
-
-/* Input Widgets (Combo, Spin, LineEdit, List) */
-QComboBox, QSpinBox, QDoubleSpinBox, QLineEdit, QListWidget {
-    padding: 5px 8px; /* More padding */
-    border: 1px solid #444; /* Slightly more visible border */
-    border-radius: 4px;
-    background-color: #252525; /* Dark input background */
+    background-color: #1c1c1e; /* Deep Charcoal */
     color: #e0e0e0;
+    font-family: "Segoe UI Variable Display", "Segoe UI", sans-serif;
     font-size: 10pt;
-    min-height: 20px; /* Ensure consistent height */
-}
-
-QComboBox:hover, QSpinBox:hover, QDoubleSpinBox:hover, QLineEdit:hover, QListWidget:hover {
-    border: 1px solid #007acc; /* Blue border on hover */
-}
-
-QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus, QLineEdit:focus, QListWidget:focus {
-    border: 1px solid #00aaff; /* Brighter blue border on focus */
-}
-
-/* ComboBox Dropdown Arrow */
-QComboBox::drop-down {
-    subcontrol-origin: padding;
-    subcontrol-position: top right;
-    width: 20px;
-    border-left-width: 1px;
-    border-left-color: #444;
-    border-left-style: solid;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    background-color: #383838;
-}
-QComboBox::down-arrow {
-     /* Using a standard character for simplicity, can use image: url(path/to/arrow.png); */
-     /* Consider using a font icon library if adding icons */
-     border: none; /* Remove default arrow */
-}
-QComboBox QAbstractItemView { /* Dropdown list style */
-    border: 1px solid #555;
-    background-color: #252525;
-    color: #e0e0e0;
-    selection-background-color: #007acc; /* Blue selection */
+    selection-background-color: #0A84FF;
     selection-color: white;
 }
 
-/* List Widget Items */
-QListWidget {
-    alternate-background-color: #2e2e2e;
+QMainWindow {
+    background-color: #1c1c1e;
 }
 
-QListWidget::item:selected {
-    background-color: #007acc; /* Blue selection */
-    color: white;
+/* --- Panels & Containers --- */
+QFrame#mainContainer, QFrame#settingsContainer {
+    background-color: transparent;
 }
 
+/* Glass Panels */
+QFrame#glassPanel {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+}
 
-/* Buttons */
-QPushButton {
-    background-color: #007bff; /* Primary blue */
-    color: white;
-    border: none; /* Flat button style */
-    padding: 8px 16px; /* Generous padding */
-    border-radius: 4px;
+/* Floating Dock */
+QFrame#controlDock {
+    background-color: rgba(30, 30, 35, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 24px;
+}
+
+/* --- Typography --- */
+QLabel#headerTitle {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+}
+
+QLabel#sectionHeader {
+    font-size: 13pt;
+    font-weight: 600;
+    color: #0A84FF;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 4px;
+}
+
+QLabel#settingLabel {
+    color: #cccccc;
     font-size: 10pt;
-    font-weight: bold;
-    min-width: 90px;
+}
+
+QLabel#hintLabel {
+    color: #888888;
+    font-size: 11pt;
+    font-style: italic;
+    font-weight: 500;
+}
+
+/* --- Transcription Area --- */
+QTextEdit#transcriptionDisplay {
+    background-color: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 18pt;
+    font-weight: 400;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+/* --- Buttons --- */
+QPushButton {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #ffffff;
+    font-weight: 600;
 }
 
 QPushButton:hover {
-    background-color: #0069d9; /* Darker blue on hover */
+    background-color: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 QPushButton:pressed {
-    background-color: #0056b3; /* Even darker blue when pressed */
+    background-color: rgba(255, 255, 255, 0.05);
+    transform: translateY(1px);
 }
 
 QPushButton:disabled {
-    background-color: #444;
-    color: #888;
+    background-color: rgba(255, 255, 255, 0.02);
+    color: #666666;
+    border: 1px solid rgba(255, 255, 255, 0.02);
 }
 
-/* Specific Buttons */
-QPushButton#stopButton { /* Style the stop button differently */
-    background-color: #dc3545; /* Red */
+/* Primary Action Button (Start) - Enhanced Feedback */
+QPushButton#startButton {
+    background-color: #0A84FF;
+    border: none;
+    border-radius: 22px; /* Slightly rounder */
+}
+QPushButton#startButton:hover {
+    background-color: #007aff;
+    border: 2px solid rgba(255, 255, 255, 0.3); /* Clear hover border */
+}
+QPushButton#startButton:pressed {
+    background-color: #0063cc;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+QPushButton#startButton:disabled {
+    background-color: rgba(10, 132, 255, 0.2); /* Dim blue when disabled */
+    color: rgba(255, 255, 255, 0.3);
+    border: none;
+}
+
+/* Stop Button - Enhanced Feedback */
+QPushButton#stopButton {
+    background-color: #FF453A;
+    border: none;
+    border-radius: 22px;
 }
 QPushButton#stopButton:hover {
-    background-color: #c82333;
+    background-color: #ff3b30;
+    border: 2px solid rgba(255, 255, 255, 0.3);
 }
 QPushButton#stopButton:pressed {
-    background-color: #bd2130;
+    background-color: #d63a30;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+QPushButton#stopButton:disabled {
+    background-color: rgba(255, 69, 58, 0.2); /* Dim red when disabled */
+    color: rgba(255, 255, 255, 0.3);
+    border: none;
 }
 
-QPushButton#restoreDefaultsButton { /* Subtle secondary button */
-     background-color: #6c757d; /* Grey */
-     font-weight: normal;
-}
-QPushButton#restoreDefaultsButton:hover {
-    background-color: #5a6268;
-}
-QPushButton#restoreDefaultsButton:pressed {
-    background-color: #545b62;
+/* Mode Toggle Button (VAD/PTT) - Combined - BOTH GREEN/ACTIVE */
+QPushButton#modeButton {
+    background-color: #30D158; /* iOS Green for Active State */
+    border: 1px solid #30D158;
+    border-radius: 22px;
+    color: #000000; /* Black text on green */
+    font-weight: 700;
 }
 
-
-/* Buttons waiting for hotkey input */
-QPushButton[waitingInput="true"] {
-    background-color: #ffc107; /* Warning yellow/gold */
-    color: #212529; /* Dark text */
-    font-style: italic;
-    border: 1px solid #ffc107;
-}
-QPushButton[waitingInput="true"]:hover {
-    background-color: #e0a800;
+QPushButton#modeButton:hover {
+    background-color: #28cd41;
+    border: 2px solid rgba(255, 255, 255, 0.4);
 }
 
-/* CheckBox for VAD */
-QCheckBox {
-    spacing: 5px; /* Space between box and text */
-    color: #cccccc;
-}
-QCheckBox::indicator {
-    width: 16px;
-    height: 16px;
-    border: 1px solid #555;
-    border-radius: 3px;
-    background-color: #252525;
-}
-QCheckBox::indicator:checked {
-    background-color: #007bff; /* Blue check */
-    border: 1px solid #0056b3;
-    /* image: url(check.png); Optional checkmark image */
-}
-QCheckBox::indicator:unchecked:hover {
-    border: 1px solid #007acc;
-}
-QCheckBox::indicator:checked:hover {
-    background-color: #0069d9;
-    border: 1px solid #007acc;
+QPushButton#modeButton:pressed {
+    background-color: #24b53a;
 }
 
-/* Status Bar */
-QStatusBar {
-    font-size: 9pt;
-    color: #aaa;
+/* Icon Buttons (Settings, Back) */
+QPushButton#iconButton {
+    background-color: transparent;
+    border: none;
+    font-family: "Segoe UI Symbol", "Segoe UI", sans-serif; /* Enforce Symbol font */
+    font-size: 28px; /* Larger icon text */
+    color: #ffffff; 
+}
+QPushButton#iconButton:hover {
+    color: #0A84FF;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+}
+
+QPushButton#backButton {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    color: #ffffff;
+    font-weight: 600;
+}
+QPushButton#backButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid #0A84FF;
+    color: #0A84FF;
+}
+
+/* --- Inputs --- */
+QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+    background-color: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: white;
+    font-size: 10pt;
+}
+
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus {
+    border: 1px solid #0A84FF;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* --- Visualizer --- */
+QProgressBar#audioVisualizer {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: none;
+    border-radius: 2px;
+    text-align: center;
+}
+QProgressBar#audioVisualizer::chunk {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0A84FF, stop:0.5 #5E5CE6, stop:1 #BF5AF2);
+    border-radius: 2px;
+}
+
+/* --- List Widget --- */
+QListWidget {
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 5px;
+}
+QListWidget::item {
+    padding: 5px;
+    border-radius: 4px;
+}
+QListWidget::item:selected {
+    background-color: #0A84FF;
+    color: white;
 }
