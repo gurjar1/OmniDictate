@@ -4,6 +4,12 @@ __pycache__/
 *.pyd
 .env
 venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+venv/
 .DS_Store
 build/
 dist/
@@ -11,4 +17,5 @@ InstallerOutput/
 release/
 icon_backup/
 *.7z.*
+*.7z
 *.log

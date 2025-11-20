@@ -73,6 +73,22 @@ Pre-built versions for Windows are available below.
 2.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download the latest `OmniDictate_Setup_vX.Y.Z.exe` file.
 3.  **Run Installer:** Double-click `OmniDictate_Setup_*.exe`. You may see a Windows SmartScreen warning because the app is unsigned; click "More info" -> "Run anyway". Follow the installation prompts (Admin privileges required).
 4.  **Launch:** Use the Start Menu or Desktop shortcut.
+
+**B. Using the Portable ZIP (`.7z` Archive)**
+
+1.  **Install Prerequisites:**
+    *   Install the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)**.
+    *   **If using GPU:** Ensure NVIDIA Driver, CUDA Toolkit, and cuDNN are installed (see "CUDA/cuDNN Setup" below).
+2.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download `OmniDictate_Portable_v2.0.0.7z`.
+3.  **Extract:**
+    *   Ensure you have [7-Zip](https://www.7-zip.org/) installed.
+    *   Right-click on the `.7z` file.
+    *   Select "7-Zip" -> "Extract Here".
+4.  **Run:** Open the extracted `OmniDictate` folder and double-click `OmniDictate.exe`. You might see a Windows SmartScreen warning on first run; click "More info" -> "Run anyway".
+
+**C. CUDA/cuDNN Setup for GPU Users (CRITICAL)**
+
+*This must be done *before* installing PyTorch if building from source, or before running the packaged `.exe` if using GPU mode.*
 1.  **NVIDIA Driver:** Install the latest driver for your GPU.
 2.  **Determine Required CUDA Version:** Check the PyTorch website ([https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/)) for the CUDA version compatible with the PyTorch version used (check `requirements.txt` if building).
 3.  **Download CUDA Toolkit:** Download the *matching* version from [NVIDIA CUDA Toolkit Archive](https://developer.nvidia.com/cuda-toolkit-archive).
