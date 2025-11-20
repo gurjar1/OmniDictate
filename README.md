@@ -11,6 +11,12 @@
 
 OmniDictate provides a modern desktop application for real-time speech-to-text on your Windows PC. It utilizes the optimized `faster-whisper` library (based on OpenAI's Whisper) for accurate transcription directly on your machine, ensuring privacy and offline capability. Text is typed directly into your active window.
 
+## Demo
+
+<video src="images/Omnidictate.mp4" controls="controls" style="max-width: 100%;">
+  <a href="images/Omnidictate.mp4">Watch Demo Video</a>
+</video>
+
 *Looking for the original command-line version? Find it here: [OmniDictate-CLI Repository](https://github.com/gurjar1/OmniDictate-CLI)*
 
 ## Downloads & Installation Notes
