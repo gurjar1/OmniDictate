@@ -26,13 +26,11 @@ Pre-built versions for Windows are available below.
 **Download Options:**
 
 1.  **Installer (`.exe` - Recommended):** Installs to Program Files and creates shortcuts. Easier for most users. Download from the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases).
-2.  **Portable ZIP (`.7z` Split Archive):** No installation needed. Useful if you prefer portable apps.
-    *   **Note:** Due to GitHub file size limits, the portable version is split into two parts (`.001` and `.002`).
+2.  **Portable ZIP (`.7z` Archive):** No installation needed. Useful if you prefer portable apps.
     *   **Instructions:**
-        1.  Download **both** parts from the Releases page.
-        2.  Right-click `OmniDictate_Portable.7z.001`.
-        3.  Select "7-Zip" -> "Extract Here" (or use WinRAR).
-        4.  Run `OmniDictate.exe` from the extracted folder.
+        1.  Download `OmniDictate_Portable_v2.0.0.7z` from the Releases page.
+        2.  Right-click the file and select **7-Zip > Extract Here**.
+        3.  Run `OmniDictate.exe` from the extracted folder.
 
 ## Features
 
@@ -42,7 +40,7 @@ Pre-built versions for Windows are available below.
 *   **Real-time Transcription:** Converts speech to text with low latency.
 *   **Local & Private:** All processing happens on your machine; no cloud required.
 *   **Type Anywhere:** Simulates keyboard input into virtually any active Windows application (except OmniDictate itself).
-*   **Configurable Settings:** Adjust model size, language (English only currently enabled), VAD sensitivity, typing delay, hotkeys, and more via the interface. Settings are saved automatically.
+*   **Configurable Settings:** Adjust model size, language (Auto-Detect or specific), VAD sensitivity, typing delay, hotkeys, and more via the interface. Settings are saved automatically.
 *   **Voice Activity Detection (VAD):** Toggle automatic start/stop based on speech via a GUI button.
 *   **Push-to-Talk (PTT):** Use a configurable global hotkey (Default: Right Shift) for manual control.
 *   **Voice Commands:**
@@ -133,9 +131,7 @@ If you prefer to build from source instead of using the pre-built releases:
 *   **Filter Words:** Add/Remove exact phrases to ignore.
 *   **Restore Defaults:** Reset all settings.
 
-## Supported Punctuation
 
-"question mark", "exclamation mark", "comma", "period" / "full stop", "colon", "semicolon", "open parenthesis", "close parenthesis", "open bracket", "close bracket", "open brace", "close brace", "hyphen" / "dash", "underscore", "plus", "equals", "at", "hash", "dollar", "percent", "caret", "ampersand", "asterisk".
 
 ## Troubleshooting
 
