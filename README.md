@@ -13,9 +13,9 @@ OmniDictate provides a modern desktop application for real-time speech-to-text o
 
 ## Demo
 
-<video src="images/Omnidictate.mp4" controls="controls" style="max-width: 100%;">
-  <a href="images/Omnidictate.mp4">Watch Demo Video</a>
-</video>
+[![Watch the Demo](images/app_screenshot_v2.png)](https://github.com/gurjar1/OmniDictate/blob/main/images/Omnidictate.mp4)
+
+*Click the image above to watch the demo video.*
 
 *Looking for the original command-line version? Find it here: [OmniDictate-CLI Repository](https://github.com/gurjar1/OmniDictate-CLI)*
 
