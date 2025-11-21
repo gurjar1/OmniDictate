@@ -1,9 +1,6 @@
 ﻿# OmniDictate: Real-time AI Dictation GUI for Windows ![Logo](images/App_icon.png)
 
-
 [![License: CC BY-NC 4.0](https://img.shields.io/badge/License-CC_BY--NC_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc/4.0/)
-
-**Repository:** [https://github.com/gurjar1/OmniDictate](https://github.com/gurjar1/OmniDictate)
 
 **Summary:** Free, open-source, real-time dictation for Windows. Runs locally (no cloud!), uses AI (`faster-whisper`), and types directly into any application via a user-friendly GUI.
 
@@ -15,29 +12,7 @@ OmniDictate provides a modern desktop application for real-time speech-to-text o
 
 ## Demo
 
-
 https://github.com/user-attachments/assets/995a582a-e641-4aa5-bc52-0cc59f5a1777
-
-
-## Downloads & Installation Notes
-
-Pre-built versions for Windows are available below.
-
-**Important Considerations:**
-
-*   **Large File Size:** The application includes the Python runtime and necessary AI model libraries (like PyTorch CPU), resulting in a large download size.
-*   **Unsigned Application:** As this is a free, open-source project, the executable and installer are **not digitally signed** with an expensive code signing certificate. This means Windows Defender SmartScreen or your antivirus might show a warning ("Windows protected your PC" or similar) when you run the installer or executable for the first time. You may need to click "More info" and then "Run anyway" to proceed.
-*   **Performance Warning:** An **NVIDIA GPU** is highly recommended. Running on CPU is supported but will be significantly slower.
-*   **Prerequisites:** Ensure you have installed the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)** before running either version. GPU users also need the correct NVIDIA components (see Requirements section).
-
-**Download Options:**
-
-1.  **Installer (`.exe` - Recommended):** Installs to Program Files and creates shortcuts. Easier for most users. Download from the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases).
-2.  **Portable ZIP (`.7z` Archive):** No installation needed. Useful if you prefer portable apps.
-    *   **Instructions:**
-        1.  Download `OmniDictate_Portable_v2.0.0.7z` from the Releases page.
-        2.  Right-click the file and select **7-Zip > Extract Here**.
-        3.  Run `OmniDictate.exe` from the extracted folder.
 
 ## Features
 
@@ -52,75 +27,48 @@ Pre-built versions for Windows are available below.
 *   **Push-to-Talk (PTT):** Use a configurable global hotkey (Default: Right Shift) for manual control.
 *   **Voice Commands:**
     *   "delete last *n* words"
-    *   "new line" / "next line" (configurable)
     *   Spoken Punctuation (e.g., "comma", "period").
 *   **Hallucination Filtering:** Add/Remove specific repetitive phrases to filter from the output via the GUI.
 *   **Transcription Display:** View the transcribed text within the application.
 *   **Copy Functionality:** Easily copy the displayed transcription using a button.
 *   **Restore Defaults:** Reset all configurable settings to their original values.
 
-## Requirements
+## System Requirements
 
-*   **Operating System:** Windows 10 or 11 (64-bit recommended).
-*   **NVIDIA GPU (Highly Recommended):** CUDA-enabled GPU (4GB+ VRAM, 6GB+ for larger models) for acceptable performance. CPU mode is supported but significantly slower.
-*   **CUDA Toolkit & cuDNN (CRITICAL for GPU):** Must be installed correctly *before* installing PyTorch if building from source, or before running the packaged application if using GPU mode. See detailed instructions below.
-*   **Microsoft Visual C++ Redistributable:** Required on machines where the application will run. Download and install the "Visual Studio 2015-2022 Redistributable (x64)". [**Download Link (Microsoft Q&A)**](https://learn.microsoft.com/en-us/answers/questions/3847666/looking-for-visual-c-2015-2022-redistributable-14)
+Before installing, ensure your system meets these requirements.
 
-### Tested Versions (v2.0.0 Build)
-The pre-built application was compiled with the following versions. If you are building from source or troubleshooting GPU issues, aim for these:
-*   **Python:** 3.11.9
-*   **PyTorch:** 2.6.0+cu126 (CUDA 12.6)
-*   **CUDA Toolkit:** 12.6
-*   **faster-whisper:** 1.1.1
-*   **ctranslate2:** 4.5.0
+### Hardware
+*   **Operating System:** Windows 10 or 11 (64-bit).
+*   **Processor:** Intel Core i5 or equivalent (quad-core+).
+*   **RAM:** 8GB (16GB+ recommended).
+*   **Storage:** Space for the Whisper model.
+*   **GPU (Highly Recommended):** NVIDIA GPU with CUDA support (4GB+ VRAM, 6GB+ for larger models) for acceptable performance. CPU mode is supported but significantly slower.
 
-## Installation & Setup (Detailed)
+### Software & Drivers
+*   **Microsoft Visual C++ Redistributable:** **REQUIRED** for both CPU and GPU usage.
+    *   [**Download Visual Studio 2015-2022 Redistributable (x64)**](https://aka.ms/vs/17/release/vc_redist.x64.exe)
+*   **NVIDIA Users (Critical):** If you intend to use GPU acceleration, you **MUST** install the following *before* running the application:
+    1.  **NVIDIA Driver:** [Download Latest Driver](https://www.nvidia.com/Download/index.aspx)
+    2.  **CUDA Toolkit 12.6:** [Download from NVIDIA Archive](https://developer.nvidia.com/cuda-12-6-0-download-archive)
+    3.  **Verify:** Ensure `nvcc --version` works in your terminal.
 
-*(Choose Installer or Portable ZIP from the [Downloads](#downloads--installation-notes) section above)*
+## Installation & Downloads
 
-**A. Using the Installer (`.exe`)**
+**Important Considerations:**
+*   **Large File Size:** Includes Python runtime and AI models.
+*   **Unsigned Application:** You may see a Windows SmartScreen warning ("Windows protected your PC"). Click **"More info" -> "Run anyway"** to proceed.
 
-1.  **Install Prerequisites:**
-    *   Install the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)** ([Download Link](https://learn.microsoft.com/en-us/answers/questions/3847666/looking-for-visual-c-2015-2022-redistributable-14)).
-    *   **If using GPU:** Ensure NVIDIA Driver, CUDA Toolkit, and cuDNN are installed (see "CUDA/cuDNN Setup" below).
-2.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download the latest `OmniDictate_Setup_vX.Y.Z.exe` file.
-3.  **Run Installer:** Double-click `OmniDictate_Setup_*.exe`. You may see a Windows SmartScreen warning because the app is unsigned; click "More info" -> "Run anyway". Follow the installation prompts (Admin privileges required).
+### A. Using the Installer (`.exe`) - Recommended
+1.  **Prerequisites:** Ensure you have installed the items listed in [System Requirements](#system-requirements).
+2.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download the latest `OmniDictate_Setup_vX.Y.Z.exe`.
+3.  **Run Installer:** Double-click the `.exe`. Accept the SmartScreen warning. Follow the prompts.
 4.  **Launch:** Use the Start Menu or Desktop shortcut.
 
-**B. Using the Portable ZIP (`.7z` Archive)**
-
-1.  **Install Prerequisites:**
-    *   Install the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)** ([Download Link](https://learn.microsoft.com/en-us/answers/questions/3847666/looking-for-visual-c-2015-2022-redistributable-14)).
-    *   **If using GPU:** Ensure NVIDIA Driver, CUDA Toolkit, and cuDNN are installed (see "CUDA/cuDNN Setup" below).
-2.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download `OmniDictate_Portable_v2.0.0.7z`.
-3.  **Extract:**
-    *   Ensure you have [7-Zip](https://www.7-zip.org/) installed.
-    *   Right-click on the `.7z` file.
-    *   Select "7-Zip" -> "Extract Here".
-4.  **Run:** Open the extracted `OmniDictate` folder and double-click `OmniDictate.exe`. You might see a Windows SmartScreen warning on first run; click "More info" -> "Run anyway".
-
-**C. CUDA/cuDNN Setup for GPU Users (CRITICAL)**
-
-*This must be done *before* installing PyTorch if building from source, or before running the packaged `.exe` if using GPU mode.*
-1.  **NVIDIA Driver:** Install the latest driver for your GPU.
-2.  **Determine Required CUDA Version:** Check the PyTorch website ([https://pytorch.org/get-started/locally/](https://pytorch.org/get-started/locally/)) for the CUDA version compatible with the PyTorch version used (check `requirements.txt` if building).
-3.  **Download CUDA Toolkit:** Download the *matching* version from [NVIDIA CUDA Toolkit Archive](https://developer.nvidia.com/cuda-toolkit-archive).
-4.  **Install CUDA Toolkit:** Run installer (Custom > Select "CUDA" components).
-5.  **cuDNN:** Usually included with the CUDA Toolkit installer. Separate download/install typically *not* needed.
-6.  **Verify PATH:** Ensure CUDA `bin` and `libnvvp` directories are in your system PATH. Verify by running `nvcc --version` in a *new* terminal.
-
-**(Optional) Building from Source:**
-
-If you prefer to build from source instead of using the pre-built releases:
-
-1.  **Install Python:** (See Requirements)
-2.  **Install Git:** (See Requirements)
-3.  **Install CUDA/cuDNN:** (See steps above)
-4.  **Clone Repo:** `git clone https://github.com/gurjar1/OmniDictate.git && cd OmniDictate`
-5.  **Create & Activate Venv:** `python -m venv venv && .\venv\Scripts\Activate.ps1`
-6.  **Install PyTorch (CUDA Version):** Get the *exact* command for your CUDA version from [PyTorch website](https://pytorch.org/get-started/locally/) and run it.
-7.  **Install Other Dependencies:** `pip install -r requirements.txt`
-8.  **Run:** `python main_gui.py`
+### B. Using the Portable ZIP (`.7z` Archive)
+1.  **Prerequisites:** Ensure you have installed the items listed in [System Requirements](#system-requirements).
+2.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download `OmniDictate_Portable_vX.Y.Z.7z`.
+3.  **Extract:** Use [7-Zip](https://www.7-zip.org/) to extract the archive to a folder of your choice.
+4.  **Run:** Open the extracted folder and double-click `OmniDictate.exe`.
 
 ## Usage Guide
 
@@ -131,8 +79,8 @@ If you prefer to build from source instead of using the pre-built releases:
     *   **VAD Mode (Default):** Simply speak when the status is "Listening". Transcription starts automatically. Pause speaking to stop recording.
     *   **Push-to-Talk (PTT):** Hold down the configured PTT key (Default: Right Shift). Transcription occurs only while the key is held. This overrides VAD. (Toggle VAD off using the button if you *only* want PTT).
     *   **Output:** Text appears in the active application window (unless it's OmniDictate) and in the "Transcription Output" area in the GUI.
-5.  **Use Commands:** Say "delete last *n* words", "new line", "comma", etc., during dictation.
-6.  **Stop Dictation:** Click the "Stop Dictation" button.
+5.  **Use Commands:** Say "comma", "at", "open bracket", etc., during dictation.
+6.  **Stop Dictation:** Click the "Stop" button.
 
 ## Configuration via GUI
 
@@ -142,29 +90,43 @@ If you prefer to build from source instead of using the pre-built releases:
 *   **Silence Threshold:** VAD sensitivity (lower = more sensitive).
 *   **Typing Delay:** Time (seconds) between typed characters.
 *   **PTT Hotkey:** Click "Set" and press the desired key.
-*   **New Line Commands:** Edit comma-separated phrases.
 *   **Filter Words:** Add/Remove exact phrases to ignore.
 *   **Restore Defaults:** Reset all settings.
 
-
-
 ## Troubleshooting
 
-*   **`CUDA is not available` / Slow Performance:** Verify GPU, NVIDIA Driver, *matching* CUDA Toolkit/cuDNN installation, and CUDA-enabled PyTorch installation (if building from source, ensure it's in the venv). Check PATH variables. Ensure you selected the GPU version during PyTorch install. Try a smaller model size.
-*   **`Failed to load Python DLL...` (when running .exe):** Ensure **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)** is installed on the target machine. If building yourself, ensure the `.exe` was built from the activated virtual environment.
+*   **`CUDA is not available` / Slow Performance:** Verify GPU, NVIDIA Driver, *matching* CUDA Toolkit/cuDNN installation, and CUDA-enabled PyTorch installation. Check PATH variables.
+*   **`Failed to load Python DLL...` (when running .exe):** Ensure **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)** is installed.
 *   **Garbled Typing:** Increase the "Typing Delay" setting. Test in Notepad first.
-*   **No Audio/VAD Not Working:** Check default microphone in Windows Sound settings (ensure 16000 Hz, not exclusive mode). Adjust "Silence Threshold". Check ASIO4ALL config if used.
+*   **No Audio/VAD Not Working:** Check default microphone in Windows Sound settings (ensure 16000 Hz, not exclusive mode). Adjust "Silence Threshold".
 *   **`ModuleNotFoundError`:** Activate virtual environment and run `pip install -r requirements.txt`.
-*   **Hotkey Issues:** Ensure no other app uses the same global hotkeys. Restart the app after changing keys to ensure the listener updates.
-*   **COM Error:** Ensure `pywin32` is correctly installed (`pip install -r requirements.txt`).
+*   **Hotkey Issues:** Ensure no other app uses the same global hotkeys. Restart the app after changing keys.
 
-## Minimum System Requirements
+## Tested Versions (v2.0.0 Build)
 
-*   **OS:** Windows 10 or 11 (64-bit)
-*   **Processor:** Intel Core i5 or equivalent (quad-core+)
-*   **RAM:** 8GB (16GB+ recommended)
-*   **GPU (Recommended):** NVIDIA GPU with CUDA support (4GB+ VRAM, 6GB+ for larger models)
-*   **Storage:** Space for the Whisper model.
+The pre-built application was compiled with the following versions. If you are building from source or troubleshooting GPU issues, aim for these:
+
+| Component | Version | Notes |
+| :--- | :--- | :--- |
+| **Python** | 3.11.9 | [Download](https://www.python.org/downloads/release/python-3119/) |
+| **PyTorch** | 2.6.0+cu126 | [Get Started](https://pytorch.org/get-started/locally/) or (pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu126) |
+| **CUDA Toolkit** | 12.6 | [Download](https://developer.nvidia.com/cuda-12-6-0-download-archive) |
+| **faster-whisper** | 1.1.1 | [Source](https://github.com/SYSTRAN/faster-whisper/releases) |
+| **ctranslate2** | 4.5.0 | [Source](https://github.com/OpenNMT/CTranslate2/releases) |
+
+## Building from Source (Optional)
+
+If you prefer to build from source:
+
+1.  **Install Python 3.11.9** and **Git**.
+2.  **Clone Repo:** `git clone https://github.com/gurjar1/OmniDictate.git && cd OmniDictate`
+3.  **Create & Activate Venv:** `python -m venv venv` and activate it.
+4.  **Install PyTorch (CUDA Version):**
+    ```bash
+    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+    ```
+5.  **Install Other Dependencies:** `pip install -r requirements.txt`
+6.  **Run:** `python main_gui.py`
 
 ## License
 
