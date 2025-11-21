@@ -26,7 +26,6 @@ https://github.com/user-attachments/assets/995a582a-e641-4aa5-bc52-0cc59f5a1777
 *   **Voice Activity Detection (VAD):** Toggle automatic start/stop based on speech via a GUI button.
 *   **Push-to-Talk (PTT):** Use a configurable global hotkey (Default: Right Shift) for manual control.
 *   **Voice Commands:**
-    *   "delete last *n* words"
     *   Spoken Punctuation (e.g., "comma", "period").
 *   **Hallucination Filtering:** Add/Remove specific repetitive phrases to filter from the output via the GUI.
 *   **Transcription Display:** View the transcribed text within the application.
@@ -41,7 +40,7 @@ Before installing, ensure your system meets these requirements.
 *   **Operating System:** Windows 10 or 11 (64-bit).
 *   **Processor:** Intel Core i5 or equivalent (quad-core+).
 *   **RAM:** 8GB (16GB+ recommended).
-*   **Storage:** Space for the Whisper model.
+*   **Storage:** Space for the Whisper model, approx 4.5 GB.
 *   **GPU (Highly Recommended):** NVIDIA GPU with CUDA support (4GB+ VRAM, 6GB+ for larger models) for acceptable performance. CPU mode is supported but significantly slower.
 
 ### Software & Drivers
@@ -102,7 +101,7 @@ Before installing, ensure your system meets these requirements.
 *   **`ModuleNotFoundError`:** Activate virtual environment and run `pip install -r requirements.txt`.
 *   **Hotkey Issues:** Ensure no other app uses the same global hotkeys. Restart the app after changing keys.
 
-## Tested Versions (v2.0.0 Build)
+## Tested Versions (v2.0.x Build)
 
 The pre-built application was compiled with the following versions. If you are building from source or troubleshooting GPU issues, aim for these:
 
