@@ -27,6 +27,7 @@ Pre-built versions for Windows are available below.
 
 *   **Large File Size:** The application includes the Python runtime and necessary AI model libraries (like PyTorch CPU), resulting in a large download size.
 *   **Unsigned Application:** As this is a free, open-source project, the executable and installer are **not digitally signed** with an expensive code signing certificate. This means Windows Defender SmartScreen or your antivirus might show a warning ("Windows protected your PC" or similar) when you run the installer or executable for the first time. You may need to click "More info" and then "Run anyway" to proceed.
+*   **Performance Warning:** An **NVIDIA GPU** is highly recommended. Running on CPU is supported but will be significantly slower.
 *   **Prerequisites:** Ensure you have installed the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)** before running either version. GPU users also need the correct NVIDIA components (see Requirements section).
 
 **Download Options:**
@@ -63,7 +64,7 @@ Pre-built versions for Windows are available below.
 *   **Operating System:** Windows 10 or 11 (64-bit recommended).
 *   **NVIDIA GPU (Highly Recommended):** CUDA-enabled GPU (4GB+ VRAM, 6GB+ for larger models) for acceptable performance. CPU mode is supported but significantly slower.
 *   **CUDA Toolkit & cuDNN (CRITICAL for GPU):** Must be installed correctly *before* installing PyTorch if building from source, or before running the packaged application if using GPU mode. See detailed instructions below.
-*   **Microsoft Visual C++ Redistributable:** Required on machines where the application will run. Download and install the "Visual Studio 2015-2022 Redistributable (x64)" from Microsoft's website.
+*   **Microsoft Visual C++ Redistributable:** Required on machines where the application will run. Download and install the "Visual Studio 2015-2022 Redistributable (x64)". [**Download Link (Microsoft Q&A)**](https://learn.microsoft.com/en-us/answers/questions/3847666/looking-for-visual-c-2015-2022-redistributable-14)
 
 ### Tested Versions (v2.0.0 Build)
 The pre-built application was compiled with the following versions. If you are building from source or troubleshooting GPU issues, aim for these:
@@ -80,7 +81,7 @@ The pre-built application was compiled with the following versions. If you are b
 **A. Using the Installer (`.exe`)**
 
 1.  **Install Prerequisites:**
-    *   Install the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)**.
+    *   Install the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)** ([Download Link](https://learn.microsoft.com/en-us/answers/questions/3847666/looking-for-visual-c-2015-2022-redistributable-14)).
     *   **If using GPU:** Ensure NVIDIA Driver, CUDA Toolkit, and cuDNN are installed (see "CUDA/cuDNN Setup" below).
 2.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download the latest `OmniDictate_Setup_vX.Y.Z.exe` file.
 3.  **Run Installer:** Double-click `OmniDictate_Setup_*.exe`. You may see a Windows SmartScreen warning because the app is unsigned; click "More info" -> "Run anyway". Follow the installation prompts (Admin privileges required).
@@ -89,7 +90,7 @@ The pre-built application was compiled with the following versions. If you are b
 **B. Using the Portable ZIP (`.7z` Archive)**
 
 1.  **Install Prerequisites:**
-    *   Install the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)**.
+    *   Install the **Microsoft Visual C++ Redistributable (VS 2015-2022 x64)** ([Download Link](https://learn.microsoft.com/en-us/answers/questions/3847666/looking-for-visual-c-2015-2022-redistributable-14)).
     *   **If using GPU:** Ensure NVIDIA Driver, CUDA Toolkit, and cuDNN are installed (see "CUDA/cuDNN Setup" below).
 2.  **Download:** Go to the [**Releases Page**](https://github.com/gurjar1/OmniDictate/releases) and download `OmniDictate_Portable_v2.0.0.7z`.
 3.  **Extract:**

@@ -39,7 +39,7 @@ DEFAULT_VAD_ENABLED = True
 DEFAULT_SILENCE_THRESHOLD = 500
 DEFAULT_CHAR_DELAY = 0.02
 DEFAULT_PTT_KEY_STR = "keyboard.Key.shift_r"
-DEFAULT_NEW_LINE_COMMANDS = ["new line", "next line"]
+
 DEFAULT_FILTER_WORDS = ["thanks for watching!", "thank you.", "thanks for watching", "Thanks for watching.", "thank you", "I'm sorry"," I'm sorry,", "I'm sorry, ", "I'm sorry,"]
 
 
@@ -113,7 +113,7 @@ class OmniDictateApp(QMainWindow):
         self.language_combo.currentTextChanged.connect(self.save_settings)
         self.silence_spinbox.valueChanged.connect(self.save_settings)
         self.delay_spinbox.valueChanged.connect(self.save_settings)
-        self.newline_edit.editingFinished.connect(self.save_settings)
+
 
         self.start_hotkey_listener()
         self.update_vad_button_style() # Initialize button state
@@ -400,10 +400,7 @@ class OmniDictateApp(QMainWindow):
         # --- Advanced Section ---
         grid.addWidget(QLabel("Advanced", objectName="sectionHeader"), row, 0, 1, 2); row += 1
         
-        grid.addWidget(QLabel("New Line Commands:", objectName="settingLabel"), row, 0)
-        self.newline_edit = QLineEdit()
-        self.newline_edit.setText(", ".join(self.loaded_settings.get("new_line_commands", DEFAULT_NEW_LINE_COMMANDS)))
-        grid.addWidget(self.newline_edit, row, 1, 1, 3); row += 1
+
 
         grid.addWidget(QLabel("Filter Words:", objectName="settingLabel"), row, 0, 1, 4); row += 1
         self.filter_list = QListWidget()
@@ -439,11 +436,11 @@ class OmniDictateApp(QMainWindow):
             "silence_threshold": self.settings.value("silence_threshold", DEFAULT_SILENCE_THRESHOLD, type=int),
             "char_delay": self.settings.value("char_delay", DEFAULT_CHAR_DELAY, type=float),
             "ptt_key_str": self.settings.value("ptt_key_str", DEFAULT_PTT_KEY_STR),
-            "new_line_commands": self.settings.value("new_line_commands", DEFAULT_NEW_LINE_COMMANDS),
+
             "filter_words": self.settings.value("filter_words", DEFAULT_FILTER_WORDS)
         }
 
-        if not isinstance(self.loaded_settings["new_line_commands"], list): self.loaded_settings["new_line_commands"] = DEFAULT_NEW_LINE_COMMANDS
+
         if not isinstance(self.loaded_settings["filter_words"], list): self.loaded_settings["filter_words"] = DEFAULT_FILTER_WORDS
         print("Settings loaded:", self.loaded_settings)
 
@@ -458,8 +455,7 @@ class OmniDictateApp(QMainWindow):
         self.settings.setValue("char_delay", self.delay_spinbox.value())
         self.settings.setValue("ptt_key_str", self.loaded_settings.get('ptt_key_str', DEFAULT_PTT_KEY_STR)) # Keep internal string
         
-        newline_cmds = [cmd.strip() for cmd in self.newline_edit.text().split(',') if cmd.strip()]
-        self.settings.setValue("new_line_commands", newline_cmds)
+
         filter_words = [self.filter_list.item(i).text() for i in range(self.filter_list.count())]
         self.settings.setValue("filter_words", filter_words)
         self.settings.sync(); print("Settings saved.")
@@ -479,7 +475,7 @@ class OmniDictateApp(QMainWindow):
         
         self.ptt_key_display_label.setText(self.format_key_name(DEFAULT_PTT_KEY_STR))
         
-        self.newline_edit.setText(", ".join(DEFAULT_NEW_LINE_COMMANDS))
+
         self.filter_list.clear(); self.filter_list.addItems(DEFAULT_FILTER_WORDS)
         self.update_vad_button_style()
         self.save_settings()
@@ -638,8 +634,7 @@ class OmniDictateApp(QMainWindow):
             gui_wid=int(self.winId()), model_size=self.loaded_settings['model_size'],
             language=self.loaded_settings['language'], vad_enabled=self.loaded_settings['vad_enabled'],
             silence_threshold=self.loaded_settings['silence_threshold'], silence_duration=0.5,
-            char_delay=self.loaded_settings['char_delay'], filter_words=self.loaded_settings['filter_words'],
-            new_line_commands=self.loaded_settings['new_line_commands']
+            char_delay=self.loaded_settings['char_delay'], filter_words=self.loaded_settings['filter_words']
         )
         self.dictation_worker.moveToThread(self.dictation_thread)
         self.dictation_worker.status_updated.connect(self.update_status)
@@ -693,7 +688,7 @@ class OmniDictateApp(QMainWindow):
         self.model_combo.setEnabled(enabled); self.language_combo.setEnabled(enabled)
         # self.vad_toggle_button.setEnabled(enabled); # VAD toggle can be active during dictation
         self.silence_spinbox.setEnabled(enabled)
-        self.delay_spinbox.setEnabled(enabled); self.newline_edit.setEnabled(enabled)
+        self.delay_spinbox.setEnabled(enabled)
         self.filter_list.setEnabled(enabled); self.filter_add_edit.setEnabled(enabled)
         self.filter_add_button.setEnabled(enabled); self.filter_remove_button.setEnabled(enabled)
         self.set_ptt_key_button.setEnabled(enabled); 
@@ -776,6 +771,14 @@ class OmniDictateApp(QMainWindow):
 
 # --- Main Execution ---
 if __name__ == "__main__":
+    # --- Set AppUserModelID for Taskbar Icon ---
+    try:
+        import ctypes
+        myappid = 'omnicorp.omnidictate.gui.2.0.1' # Arbitrary string
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    except Exception as e:
+        print(f"Error setting AppUserModelID: {e}")
+
     app = QApplication(sys.argv)
 
  # --- Set App Icon EARLY ---

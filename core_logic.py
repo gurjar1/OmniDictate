@@ -14,6 +14,7 @@ import torch
 import sounddevice as sd
 from faster_whisper import WhisperModel
 from pynput import keyboard # Keep for Controller in typing thread
+from pynput.keyboard import Controller, Key
 
 # PySide6 imports for threading and signals
 from PySide6.QtCore import QObject, Signal, QTimer, Slot
@@ -25,52 +26,10 @@ CHUNK_SIZE = int(SAMPLE_RATE * CHUNK_DURATION)
 # CHAR_DELAY passed via __init__
 
 # --- Helper Functions ---
-def delete_last_n_words_direct(n):
-    """Deletes the last n words directly in the active window."""
-    try:
-        from pywinauto import application
-        import ctypes, time
-        hwnd = ctypes.windll.user32.GetForegroundWindow()
-        if hwnd == 0: print("Error: Could not get foreground window handle."); return False
-        app = application.Application().connect(handle=hwnd)
-        active_window = app.top_window()
-        active_window.set_focus(); time.sleep(0.05)
-        for _ in range(n): active_window.type_keys("^+{LEFT}"); time.sleep(0.05)
-        active_window.type_keys("{DELETE}"); time.sleep(0.05)
-        return True
-    except ImportError: print("Error: pywinauto not installed."); return False
-    except Exception as e: print(f"Error deleting text: {e}"); return False
-
-def insert_punctuation(punctuation_name):
-    """Inserts punctuation based on a verbal command."""
-    try:
-        from pywinauto import application
-        import ctypes, time
-        hwnd = ctypes.windll.user32.GetForegroundWindow()
-        if hwnd == 0: print("Error: Could not get foreground window handle."); return False
-        app = application.Application().connect(handle=hwnd)
-        active_window = app.top_window()
-        active_window.set_focus(); time.sleep(0.05)
-        pmap = {"question mark": "?", "exclamation mark": "!", "comma": ",", "period": ".", "full stop": ".", "colon": ":", "semicolon": ";", "open parenthesis": "(", "close parenthesis": ")", "open bracket": "[", "close bracket": "]", "open brace": "{", "close brace": "}", "hyphen": "-", "dash": "-", "underscore": "_", "plus": "+", "equals": "=", "at": "@", "hash": "#", "dollar": "$", "percent": "%", "caret": "^", "ampersand": "&", "asterisk": "*"}
-        punc = pmap.get(punctuation_name.lower())
-        if punc: active_window.type_keys(punc, pause=0.01); print(f"Inserted: {punc}"); return True
-        else: print(f"Unknown punctuation: {punctuation_name}"); return False
-    except ImportError: print("Error: pywinauto not installed."); return False
-    except Exception as e: print(f"Error inserting punctuation: {e}"); return False
-
-def insert_new_line():
-    """Inserts a new line."""
-    try:
-        from pywinauto import application
-        import ctypes, time
-        hwnd = ctypes.windll.user32.GetForegroundWindow()
-        if hwnd == 0: print("Error: Could not get foreground window handle."); return False
-        app = application.Application().connect(handle=hwnd)
-        active_window = app.top_window()
-        active_window.set_focus(); time.sleep(0.05)
-        active_window.type_keys("{ENTER}"); print("Inserted new line."); return True
-    except ImportError: print("Error: pywinauto not installed."); return False
-    except Exception as e: print(f"Error inserting new line: {e}"); return False
+def get_punctuation_char(punctuation_name):
+    """Returns the punctuation character based on a verbal command."""
+    pmap = {"question mark": "?", "exclamation mark": "!", "comma": ",", "period": ".", "full stop": ".", "colon": ":", "semicolon": ";", "open parenthesis": "(", "close parenthesis": ")", "open bracket": "[", "close bracket": "]", "open brace": "{", "close brace": "}", "hyphen": "-", "dash": "-", "underscore": "_", "plus": "+", "equals": "=", "at": "@", "hash": "#", "dollar": "$", "percent": "%", "caret": "^", "ampersand": "&", "asterisk": "*"}
+    return pmap.get(punctuation_name.lower())
 
 
 # --- Worker Class ---
@@ -82,7 +41,7 @@ class DictationWorker(QObject):
 
     def __init__(self, gui_wid, model_size="large-v3", language="en", vad_enabled=True,
                  silence_threshold=500, silence_duration=0.5, char_delay=0.02,
-                 filter_words=None, new_line_commands=None, parent=None):
+                 filter_words=None, parent=None):
         super().__init__(parent)
         self.gui_wid = gui_wid
         self.model_size = model_size
@@ -94,9 +53,8 @@ class DictationWorker(QObject):
         self.silence_frames = int(silence_duration * SAMPLE_RATE / CHUNK_SIZE)
         self.char_delay = char_delay
         self.filter_words = set(word.lower().strip() for word in filter_words) if filter_words else set()
-        self.new_line_commands = set(cmd.lower().strip() for cmd in new_line_commands) if new_line_commands else {"new line", "next line"}
-
-        print(f"Worker Init: New Line Cmds={self.new_line_commands}")
+        
+        print(f"Worker Init: Filter Words={len(self.filter_words)}")
 
         self.model = None
         self.audio_stream = None
@@ -144,7 +102,7 @@ class DictationWorker(QObject):
             model_path = self.model_size
             if self.model_size == "large-v3-turbo":
                 model_path = "deepdml/faster-whisper-large-v3-turbo-ct2"
-            self.model = WhisperModel(model_path, device=device, compute_type=compute_type)
+            self.model = WhisperModel(model_path, device=device, compute_type=compute_type, local_files_only=False)
             status_msg = f"Model '{self.model_size}' loaded on {device.upper()}."; print(status_msg); self.status_updated.emit(status_msg)
             return True
         except Exception as e: error_msg = f"Error loading model: {e}"; print(error_msg); self.error_occurred.emit(error_msg); self.model = None; return False
@@ -281,20 +239,15 @@ class DictationWorker(QObject):
             self.transcription_ready.emit(processed_text)
 
             text_lower = processed_text.lower(); is_command = False
-            if text_lower in self.new_line_commands: insert_new_line(); is_command = True
             if not is_command:
-                punc_match = re.match(r"(question mark|exclamation mark|comma|period|full stop|colon|semicolon|open parenthesis|close parenthesis|open bracket|close bracket|open brace|close brace|hyphen|dash|underscore|plus|equals|at|hash|dollar|percent|caret|ampersand|asterisk)", text_lower)
-                if punc_match: insert_punctuation(punc_match.group(1)); is_command = True
-            if not is_command:
-                cmd_match = re.match(r"(delete|remove) last (\d+|one|two|three|four|five|six|seven|eight|nine|ten) words?", text_lower)
-                if cmd_match:
-                    action, num_str = cmd_match.groups(); num = 0
-                    if num_str.isdigit(): num = int(num_str)
-                    else: w2n = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10}; num = w2n.get(num_str, 0)
-                    if action in ("delete", "remove") and num > 0:
-                        if delete_last_n_words_direct(num): print(f"Deleted last {num} words.")
-                    is_command = True
-
+                punc_match = re.match(r"^(question mark|exclamation mark|comma|period|full stop|colon|semicolon|open parenthesis|close parenthesis|open bracket|close bracket|open brace|close brace|hyphen|dash|underscore|plus|equals|at|hash|dollar|percent|caret|ampersand|asterisk)[.?!]?$", text_lower.strip())
+                if punc_match:
+                    punc_char = get_punctuation_char(punc_match.group(1))
+                    if punc_char:
+                        self.text_queue.put(punc_char)
+                        print(f"Queued punctuation: {punc_char}")
+                        is_command = True
+            
             if not is_command: self.text_queue.put(processed_text + " ")
 
     def _typing_loop(self):
@@ -315,6 +268,7 @@ class DictationWorker(QObject):
                         for char in text_to_type:
                             if not self._is_running or self.stop_typing_event.is_set(): break
                             keyboard_controller.press(char)
+                            time.sleep(0.02) # Robustness: Hold key for 20ms
                             keyboard_controller.release(char)
                             time.sleep(self.char_delay)
                     except Exception as e: error_msg = f"Error typing text: {e}"; print(error_msg); self.error_occurred.emit(error_msg)

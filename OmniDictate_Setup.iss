@@ -5,7 +5,7 @@
 ; --- Application Identification ---
 AppId={{E71B4146-B5BC-4903-946E-ED954312E31A}} ; Unique GUID (KEEP THIS!)
 AppName=OmniDictate
-AppVersion=2.0.0
+AppVersion=2.0.1
 AppPublisher=KAPIL GURJAR
 AppPublisherURL=https://github.com/gurjar1/OmniDictate
 AppSupportURL=https://github.com/gurjar1/OmniDictate/issues
@@ -23,7 +23,7 @@ ArchitecturesInstallIn64BitMode=x64
 ; Folder where the setup.exe will be created
 OutputDir=InstallerOutput
 ; Name of the setup file
-OutputBaseFilename=OmniDictate_Setup_v2.0.0
+OutputBaseFilename=OmniDictate_Setup_v2.0.1
 ; Icon for setup.exe (ensure icon.ico exists)
 SetupIconFile=icon.ico
 ; Compression settings
