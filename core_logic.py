@@ -38,6 +38,7 @@ class DictationWorker(QObject):
     transcription_ready = Signal(str)
     error_occurred = Signal(str)
     audio_level = Signal(float)
+    device_changed = Signal(str)
 
     def __init__(self, gui_wid, model_size="large-v3", language="en", vad_enabled=True,
                  silence_threshold=500, silence_duration=0.5, char_delay=0.02,
@@ -113,6 +114,7 @@ class DictationWorker(QObject):
                 self.model = WhisperModel(model_path, device=device, compute_type=compute_type, local_files_only=False)
                 status_msg = f"Model '{self.model_size}' loaded on {device.upper()} ({compute_type})."
                 print(status_msg); self.status_updated.emit(status_msg)
+                self.device_changed.emit("GPU" if device == "cuda" else "CPU")
                 return True
             except Exception as e:
                 if "float16" in str(e) and device == "cuda":
@@ -123,6 +125,7 @@ class DictationWorker(QObject):
                         self.model = WhisperModel(model_path, device="cuda", compute_type=compute_type, local_files_only=False)
                         status_msg = f"Model '{self.model_size}' loaded on CUDA (float32 fallback)."
                         print(status_msg); self.status_updated.emit(status_msg)
+                        self.device_changed.emit("GPU")
                         return True
                     except Exception as e2:
                         print(f"Float32 on CUDA failed: {e2}. Falling back to CPU...")
@@ -132,6 +135,7 @@ class DictationWorker(QObject):
                 self.model = WhisperModel(model_path, device="cpu", compute_type="int8", local_files_only=False)
                 status_msg = f"Model '{self.model_size}' loaded on CPU (int8 fallback)."
                 print(status_msg); self.status_updated.emit(status_msg)
+                self.device_changed.emit("CPU")
                 return True
 
         except Exception as e: 
