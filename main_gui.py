@@ -216,6 +216,10 @@ class OmniDictateApp(QMainWindow):
         self.model_display_label.setObjectName("settingLabel")
         self.model_display_label.setStyleSheet("color: #888; font-size: 10pt; margin-right: 10px;")
 
+        self.device_display_label = QLabel("Device: -")
+        self.device_display_label.setObjectName("deviceLabel")
+        self.device_display_label.setStyleSheet("color: #888; font-size: 10pt; margin-right: 10px;")
+
         self.settings_button = QPushButton()
         self.settings_button.setIcon(self.create_gear_icon())
         self.settings_button.setIconSize(QSize(24, 24))
@@ -227,6 +231,7 @@ class OmniDictateApp(QMainWindow):
         header_layout.addWidget(title)
         header_layout.addStretch()
         header_layout.addWidget(self.model_display_label)
+        header_layout.addWidget(self.device_display_label)
         header_layout.addWidget(self.settings_button)
         layout.addLayout(header_layout)
 
@@ -587,6 +592,14 @@ class OmniDictateApp(QMainWindow):
              self.update_vad_button_style() # Refresh hint text logic
 
     @Slot(str)
+    def update_device_label(self, device_name):
+        self.device_display_label.setText(f"Device: {device_name}")
+        if device_name == "GPU":
+            self.device_display_label.setStyleSheet("color: #30D158; font-size: 10pt; margin-right: 10px; font-weight: bold;")
+        else:
+            self.device_display_label.setStyleSheet("color: #FF9F0A; font-size: 10pt; margin-right: 10px; font-weight: bold;")
+
+    @Slot(str)
     def handle_transcription(self, text):
         current_text = self.transcription_display.toPlainText()
         prefix = "\n" if current_text and not current_text.endswith(('\n', ' ')) else ""
@@ -641,6 +654,7 @@ class OmniDictateApp(QMainWindow):
         self.dictation_worker.transcription_ready.connect(self.handle_transcription)
         self.dictation_worker.error_occurred.connect(self.show_error)
         self.dictation_worker.audio_level.connect(self.update_visualizer) 
+        self.dictation_worker.device_changed.connect(self.update_device_label)
         self.dictation_thread.started.connect(self.dictation_worker.start_processing)
         self.dictation_thread.finished.connect(self.dictation_worker.deleteLater)
         self.dictation_thread.finished.connect(self.dictation_thread.deleteLater)
