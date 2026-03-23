@@ -296,12 +296,9 @@ class DictationWorker(QObject):
                     try:
                         hwnd = ctypes.windll.user32.GetForegroundWindow()
                         if hwnd == self.gui_wid: print("Skipping typing: OmniDictate window active."); continue
-                        for char in text_to_type:
-                            if not self._is_running or self.stop_typing_event.is_set(): break
-                            keyboard_controller.press(char)
-
-                            keyboard_controller.release(char)
-                            time.sleep(self.char_delay)
+                        # PATCH: Use type() instead of per-char press/release
+                        keyboard_controller.type(text_to_type)
+                        time.sleep(0.05)
                     except Exception as e: error_msg = f"Error typing text: {e}"; print(error_msg); self.error_occurred.emit(error_msg)
                 except queue.Empty: continue
                 except Exception as e: error_msg = f"Typing queue error: {e}"; print(error_msg); self.error_occurred.emit(error_msg); time.sleep(0.1)
