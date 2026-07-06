@@ -14,8 +14,26 @@ venv/
 build/
 dist/
 InstallerOutput/
-release/
+/release/
 icon_backup/
 *.7z.*
 *.7z
 *.log
+CACHEDIR.TAG
+.locks/
+Output/
+
+# Local model caches and heavyweight downloaded model artifacts.
+# Keep these out of commits; use the model downloader or HF cache instead.
+models/
+models--*/
+smoke_test_assets/
+docs/loop-principle/source/
+*.safetensors
+*.gguf
+*.bin
+*.onnx
+
+# Local verification artifacts.
+docs/current-ui-offscreen.png
+docs/ui-smoke.png
