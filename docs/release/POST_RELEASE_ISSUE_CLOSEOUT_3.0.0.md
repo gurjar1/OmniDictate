@@ -13,15 +13,13 @@ inside OmniDictate without sending keystrokes to other apps.
 Comment:
 
 ```text
-Released in v3.0.0. There is now a "Type into active app" setting, so OmniDictate can be used in Transcribe Only mode without keyboard simulation.
-
-Thanks for the suggestion. This was a good fit for the recovery release because it also gives users a safer way to test dictation before sending text into another app.
+Released in v3.0.0. There is now a "Type into active app" setting, so OmniDictate can be used in Transcribe Only mode without sending keyboard input to other applications.
 ```
 
 Command:
 
 ```powershell
-gh issue comment 27 --repo gurjar1/OmniDictate --body "Released in v3.0.0. There is now a \"Type into active app\" setting, so OmniDictate can be used in Transcribe Only mode without keyboard simulation.`n`nThanks for the suggestion. This was a good fit for the recovery release because it also gives users a safer way to test dictation before sending text into another app."
+gh issue comment 27 --repo gurjar1/OmniDictate --body "Released in v3.0.0. There is now a \"Type into active app\" setting, so OmniDictate can be used in Transcribe Only mode without sending keyboard input to other applications."
 gh issue close 27 --repo gurjar1/OmniDictate --reason completed
 ```
 
@@ -33,14 +31,12 @@ Comment:
 
 ```text
 Released in v3.0.0. Czech is now available in the preferred language selector, alongside Auto Detect.
-
-Thanks for reporting this. Auto Detect can be inconvenient for regular Czech dictation, so a fixed language option makes sense here.
 ```
 
 Command:
 
 ```powershell
-gh issue comment 26 --repo gurjar1/OmniDictate --body "Released in v3.0.0. Czech is now available in the preferred language selector, alongside Auto Detect.`n`nThanks for reporting this. Auto Detect can be inconvenient for regular Czech dictation, so a fixed language option makes sense here."
+gh issue comment 26 --repo gurjar1/OmniDictate --body "Released in v3.0.0. Czech is now available in the preferred language selector, alongside Auto Detect."
 gh issue close 26 --repo gurjar1/OmniDictate --reason completed
 ```
 
