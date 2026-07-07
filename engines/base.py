@@ -105,6 +105,38 @@ class BackendLoadResult:
     success: bool
     status_message: str
     warnings: list[str] = field(default_factory=list)
+    runtime_diagnostics: "RuntimeDiagnostics | None" = None
+
+
+@dataclass(slots=True)
+class RuntimeAction:
+    label: str
+    url: str
+
+
+@dataclass(slots=True)
+class RuntimeDiagnostics:
+    status: str
+    headline: str
+    summary: str
+    device: str = ""
+    compute_type: str = ""
+    next_steps: list[str] = field(default_factory=list)
+    technical_details: list[str] = field(default_factory=list)
+    actions: list[RuntimeAction] = field(default_factory=list)
+
+    def plain_text(self) -> str:
+        lines = [self.headline, "", self.summary]
+        if self.next_steps:
+            lines.extend(["", "Recommended next steps:"])
+            lines.extend(f"{index}. {step}" for index, step in enumerate(self.next_steps, start=1))
+        if self.technical_details:
+            lines.extend(["", "Technical details:"])
+            lines.extend(f"- {detail}" for detail in self.technical_details)
+        if self.actions:
+            lines.extend(["", "Links:"])
+            lines.extend(f"- {action.label}: {action.url}" for action in self.actions)
+        return "\n".join(lines).strip()
 
 
 class TranscriptionBackend(ABC):

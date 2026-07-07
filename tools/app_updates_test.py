@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app_updates import is_newer_version, parse_version, update_info_from_release
+from app_updates import APP_VERSION, is_newer_version, parse_version, update_info_from_release
 
 
 class AppUpdatesTest(unittest.TestCase):
@@ -33,6 +33,17 @@ class AppUpdatesTest(unittest.TestCase):
         self.assertTrue(info.update_available)
         self.assertEqual(info.latest_version, "v3.0.1")
         self.assertIn("/releases/tag/v3.0.1", info.release_url)
+
+    def test_current_patch_release_does_not_update_to_itself(self):
+        self.assertEqual(APP_VERSION, "3.0.1")
+        info = update_info_from_release(
+            {
+                "tag_name": "v3.0.1",
+                "html_url": "https://github.com/gurjar1/OmniDictate/releases/tag/v3.0.1",
+            },
+        )
+
+        self.assertFalse(info.update_available)
 
 
 if __name__ == "__main__":

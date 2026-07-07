@@ -13,7 +13,7 @@ from pynput import keyboard
 from PySide6.QtCore import QObject, QTimer, Signal, Slot
 
 from app_settings import AppSettings
-from engines.base import PromptMode, TranscriptionRequest, TranscriptionResult
+from engines.base import PromptMode, RuntimeDiagnostics, TranscriptionRequest, TranscriptionResult
 from engines.context_capture import VisualContextManager, get_foreground_app_context
 from engines.whisper_backend import WhisperBackend
 
@@ -88,12 +88,27 @@ class UnavailableBackend:
         self.error = error
 
     def load(self):
-        from engines.base import BackendLoadResult
+        from engines.base import BackendLoadResult, RuntimeDiagnostics
 
+        message = f"{self.label} backend is unavailable in this build: {self.error}"
         return BackendLoadResult(
             False,
-            f"{self.label} backend is unavailable in this build: {self.error}",
+            message,
             [],
+            RuntimeDiagnostics(
+                status="error",
+                headline="Selected runtime is not available",
+                summary=(
+                    "This OmniDictate build cannot use the selected speech runtime. "
+                    "The public installer uses Faster-Whisper for local dictation."
+                ),
+                next_steps=[
+                    "Open Settings and choose Faster-Whisper.",
+                    "Use Pure transcription for the public Windows build.",
+                    "Restart dictation after saving Settings.",
+                ],
+                technical_details=[message],
+            ),
         )
 
     def unload(self) -> None:
@@ -111,6 +126,7 @@ class DictationWorker(QObject):
     audio_level = Signal(float)
     context_updated = Signal(str)
     route_updated = Signal(str)
+    runtime_updated = Signal(object)
     stop_completed = Signal()
 
     def __init__(
@@ -220,6 +236,15 @@ class DictationWorker(QObject):
 
         self.backend = create_backend(self.app_settings)
         load_result = self.backend.load()
+        runtime_diagnostics = load_result.runtime_diagnostics
+        if runtime_diagnostics is None:
+            runtime_diagnostics = RuntimeDiagnostics(
+                status="checked",
+                headline="Runtime loaded",
+                summary=load_result.status_message,
+                technical_details=[load_result.status_message, *load_result.warnings],
+            )
+        self.runtime_updated.emit(runtime_diagnostics)
         self.status_updated.emit(load_result.status_message)
         for warning in load_result.warnings:
             self.status_updated.emit(warning)

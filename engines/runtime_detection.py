@@ -32,6 +32,36 @@ def ctranslate2_cuda_is_available() -> bool:
         return False
 
 
+def ctranslate2_runtime_probe() -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "available": False,
+        "version": "",
+        "cuda_device_count": 0,
+        "supported_compute_types": [],
+        "error": "",
+    }
+    try:
+        import ctranslate2
+    except Exception as exc:
+        payload["error"] = f"CTranslate2 import failed: {exc}"
+        return payload
+
+    payload["available"] = True
+    payload["version"] = str(getattr(ctranslate2, "__version__", ""))
+    try:
+        payload["cuda_device_count"] = int(ctranslate2.get_cuda_device_count())
+    except Exception as exc:
+        payload["error"] = f"CTranslate2 CUDA check failed: {exc}"
+        return payload
+
+    if payload["cuda_device_count"] > 0:
+        try:
+            payload["supported_compute_types"] = sorted(ctranslate2.get_supported_compute_types("cuda"))
+        except Exception as exc:
+            payload["error"] = f"CTranslate2 CUDA compute-type check failed: {exc}"
+    return payload
+
+
 def whisper_cuda_is_available() -> bool:
     return ctranslate2_cuda_is_available() or torch_cuda_is_available()
 

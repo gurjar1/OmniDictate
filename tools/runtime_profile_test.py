@@ -98,6 +98,23 @@ class RuntimeProfileTest(unittest.TestCase):
             self.assertTrue(migrated.type_into_active_app)
             self.assertEqual(settings.value("release_defaults_version"), RELEASE_DEFAULTS_VERSION)
 
+    def test_release_default_migration_repairs_previous_patch_defaults(self):
+        with TemporaryDirectory() as temp_dir:
+            settings = QSettings(str(Path(temp_dir) / "settings.ini"), QSettings.IniFormat)
+            settings.setValue("release_defaults_version", "3.0.0-public-defaults")
+            settings.setValue("whisper_model", "base")
+            settings.setValue("language", "es")
+            settings.setValue("type_into_active_app", False)
+            settings.sync()
+
+            self.assertTrue(migrate_release_defaults(settings))
+            migrated = AppSettings.from_qsettings(settings)
+
+            self.assertEqual(migrated.whisper_model, "large-v3-turbo")
+            self.assertEqual(migrated.language, "en")
+            self.assertTrue(migrated.type_into_active_app)
+            self.assertEqual(settings.value("release_defaults_version"), RELEASE_DEFAULTS_VERSION)
+
     def test_release_default_migration_does_not_overwrite_current_user_choices(self):
         with TemporaryDirectory() as temp_dir:
             settings = QSettings(str(Path(temp_dir) / "settings.ini"), QSettings.IniFormat)

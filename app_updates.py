@@ -6,7 +6,7 @@ import urllib.request
 from dataclasses import dataclass
 
 
-APP_VERSION = "3.0.0"
+APP_VERSION = "3.0.1"
 GITHUB_RELEASES_URL = "https://github.com/gurjar1/OmniDictate/releases"
 GITHUB_LATEST_RELEASE_API = "https://api.github.com/repos/gurjar1/OmniDictate/releases/latest"
 

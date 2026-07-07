@@ -38,6 +38,9 @@ class UiContrastStaticTest(unittest.TestCase):
             "QComboBox QAbstractItemView",
             "QComboBox QAbstractItemView::item:selected",
             "QPushButton#iconButton",
+            "QPushButton#runtimeStatusButton",
+            'QPushButton#runtimeStatusButton[runtimeState="cpu"]',
+            'QPushButton#runtimeStatusButton[runtimeState="gpu"]',
             "QWidget:disabled",
         ]
 

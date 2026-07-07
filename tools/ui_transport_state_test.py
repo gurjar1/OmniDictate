@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT))
 from PySide6.QtWidgets import QApplication
 
 from app_settings import AppSettings
+from engines.base import RuntimeDiagnostics
 from main_gui import OmniDictateApp
 
 
@@ -63,6 +64,32 @@ class UiTransportStateTest(unittest.TestCase):
         self.assertTrue(hasattr(self.window, "min_ptt_duration_spinbox"))
         self.assertEqual(AppSettings().min_ptt_duration_ms, 250)
         self.assertEqual(self.window.check_updates_button.text(), "Check for Updates")
+        self.assertTrue(hasattr(self.window, "runtime_status_button"))
+
+    def test_runtime_badge_uses_plain_language_states(self):
+        self.window.handle_runtime_update(RuntimeDiagnostics(
+            status="gpu-ready",
+            headline="GPU acceleration is working",
+            summary="OmniDictate is using your NVIDIA GPU.",
+        ))
+        self.assertEqual(self.window.runtime_status_button.text(), "Runtime: GPU ready")
+        self.assertEqual(self.window.runtime_status_button.property("runtimeState"), "gpu")
+
+        self.window.handle_runtime_update(RuntimeDiagnostics(
+            status="cpu-mode",
+            headline="CPU mode",
+            summary="OmniDictate is working, but transcription can be slower.",
+        ))
+        self.assertEqual(self.window.runtime_status_button.text(), "Runtime: CPU mode")
+        self.assertEqual(self.window.runtime_status_button.property("runtimeState"), "cpu")
+
+        self.window.handle_runtime_update(RuntimeDiagnostics(
+            status="checked",
+            headline="Runtime loaded",
+            summary="The selected runtime loaded.",
+        ))
+        self.assertEqual(self.window.runtime_status_button.text(), "Runtime: Checked")
+        self.assertEqual(self.window.runtime_status_button.property("runtimeState"), "unknown")
 
 
 if __name__ == "__main__":

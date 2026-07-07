@@ -9,7 +9,7 @@ from PySide6.QtCore import QSettings
 
 CONFIG_ORG = os.environ.get("OMNIDICTATE_SETTINGS_ORG", "OmniCorp")
 CONFIG_APP = os.environ.get("OMNIDICTATE_SETTINGS_APP", "OmniDictate")
-RELEASE_DEFAULTS_VERSION = "3.0.0-public-defaults"
+RELEASE_DEFAULTS_VERSION = "3.0.1-public-defaults"
 
 DEFAULT_FILTER_WORDS = [
     "thanks for watching!",

@@ -246,6 +246,39 @@ QPushButton#iconButton {
     padding: 0;
 }
 
+QPushButton#runtimeStatusButton {
+    color: #12344c;
+    background-color: #ffffff;
+    border: 1px solid #c9d6df;
+    border-radius: 16px;
+    padding: 8px 14px;
+}
+
+QPushButton#runtimeStatusButton[runtimeState="gpu"] {
+    color: #0f4d35;
+    background-color: #e9f7ef;
+    border: 1px solid #78b995;
+}
+
+QPushButton#runtimeStatusButton[runtimeState="compat"],
+QPushButton#runtimeStatusButton[runtimeState="cpu"] {
+    color: #633d08;
+    background-color: #fff4df;
+    border: 1px solid #d7a957;
+}
+
+QPushButton#runtimeStatusButton[runtimeState="error"] {
+    color: #7a1f1f;
+    background-color: #fff0f0;
+    border: 1px solid #df8b8b;
+}
+
+QPushButton#runtimeStatusButton[runtimeState="checking"] {
+    color: #33556b;
+    background-color: #eef6fa;
+    border: 1px solid #8fb7ca;
+}
+
 QPushButton#backButton {
     border-radius: 20px;
 }

@@ -32,16 +32,20 @@ The installer includes OmniDictate and its app runtime. A fresh Windows machine 
 - Windows 10 or Windows 11, 64-bit.
 - A working microphone.
 - Internet access on first use so the selected Whisper model can download.
-- For GPU acceleration: an NVIDIA GPU, current NVIDIA driver, CUDA 12.x runtime, and cuDNN 8 for CUDA 12.x. CPU mode can work, but it is much slower.
+- For GPU acceleration: an NVIDIA GPU plus a working NVIDIA driver and CUDA/cuDNN runtime that matches this OmniDictate build. CPU mode can work, but it is much slower.
 - Microsoft Visual C++ Redistributable 2015-2022 x64 if Windows reports missing runtime DLLs.
 
 You do not need to install Python, Git, or PyTorch to use the normal installer.
 
 Recommended runtime setup:
 
+OmniDictate shows a **Runtime** badge in the main window after the speech model starts. Click it to open **Performance Check**. The checker says whether the app is using GPU or CPU mode, what was detected, and which setup step to try next.
+
+Use these official downloads only when Performance Check says GPU setup needs attention:
+
 1. Install or update your NVIDIA display driver from [NVIDIA Driver Downloads](https://www.nvidia.com/en-us/drivers/).
-2. Install CUDA Toolkit 12.x for Windows from the [CUDA Toolkit Archive](https://developer.nvidia.com/cuda-toolkit-archive). CUDA Toolkit 12.9.2 is the latest CUDA 12 archive entry as of July 2026.
-3. If OmniDictate reports missing cuDNN DLLs or GPU loading still fails, install cuDNN 8 for CUDA 12.x from the [NVIDIA cuDNN Archive](https://developer.nvidia.com/rdp/cudnn-archive).
+2. Install the CUDA runtime/toolkit version recommended by Performance Check from the [CUDA Toolkit Archive](https://developer.nvidia.com/cuda-toolkit-archive).
+3. If OmniDictate reports missing cuDNN DLLs or GPU loading still fails, install the cuDNN version recommended by Performance Check from the [NVIDIA cuDNN Archive](https://developer.nvidia.com/rdp/cudnn-archive).
 4. If Windows reports missing Visual C++ runtime DLLs, install **Microsoft Visual C++ Redistributable for Visual Studio 2015-2022 x64** from [Microsoft's latest supported VC++ Redistributable page](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist). The direct x64 installer is [vc_redist.x64.exe](https://aka.ms/vs/17/release/vc_redist.x64.exe).
 
 ## Why The Installer Is Smaller Now
@@ -114,7 +118,7 @@ If OmniDictate itself is the active window, it keeps the transcript inside OmniD
 
 ## Troubleshooting
 
-- **Slow transcription or low GPU usage:** install/update your NVIDIA driver, CUDA 12.x runtime, and cuDNN 8 for CUDA 12.x. CPU fallback can be much slower.
+- **Slow transcription or low GPU usage:** click the **Runtime** badge and open **Performance Check**. If it says CPU mode, follow the listed NVIDIA driver, CUDA, and cuDNN steps. CPU fallback can be much slower.
 - **First run takes time:** the selected Whisper model may be downloading.
 - **Repeated phrases such as "thank you" or "I'm sorry":** try a larger model, reduce background noise, increase the minimum PTT hold, or add the exact phrase to Blocked phrases.
 - **Garbled typing:** increase Typing pace and test in Notepad first.

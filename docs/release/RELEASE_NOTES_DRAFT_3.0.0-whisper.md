@@ -42,8 +42,9 @@ administrator access.
 - Windows 10 or Windows 11, 64-bit.
 - A working microphone.
 - Internet access on first use so the selected Whisper model can download.
-- For GPU acceleration: an NVIDIA GPU, current NVIDIA driver, CUDA 12.x runtime,
-  and cuDNN 8 for CUDA 12.x. CPU mode can work but is slower.
+- For GPU acceleration: an NVIDIA GPU plus a working NVIDIA driver and
+  CUDA/cuDNN runtime that matches this OmniDictate build. CPU mode can work but
+  is slower.
 - Microsoft Visual C++ Redistributable 2015-2022 x64 if Windows reports missing
   runtime DLLs.
 
@@ -51,17 +52,19 @@ Python, Git, and PyTorch are not required for the normal installer.
 
 ### Recommended Runtime Setup
 
-Use these official downloads:
+OmniDictate shows a **Runtime** badge in the main window after the speech model
+starts. Click it to open **Performance Check**. The checker says whether the app
+is using GPU or CPU mode, what was detected, and which setup step to try next.
+
+Use these official downloads only when Performance Check says GPU setup needs
+attention:
 
 1. Install or update the NVIDIA display driver from
    [NVIDIA Driver Downloads](https://www.nvidia.com/en-us/drivers/).
-2. Install CUDA Toolkit 12.x for Windows. For this build, use the CUDA 12 line
-   because CTranslate2 documents CUDA 12.x as the supported GPU runtime for
-   Windows Python wheels:
+2. Install the CUDA runtime/toolkit version recommended by Performance Check:
    [CUDA Toolkit Archive](https://developer.nvidia.com/cuda-toolkit-archive).
-   CUDA Toolkit 12.9.2 is the latest CUDA 12 archive entry as of July 2026.
 3. If OmniDictate reports missing cuDNN DLLs or GPU loading still fails, install
-   cuDNN 8 for CUDA 12.x from
+   the cuDNN version recommended by Performance Check from
    [NVIDIA cuDNN Archive](https://developer.nvidia.com/rdp/cudnn-archive).
 4. If Windows reports missing Visual C++ runtime DLLs, install
    **Microsoft Visual C++ Redistributable for Visual Studio 2015-2022 x64** from
@@ -87,8 +90,8 @@ Use Windows **Settings > Apps > Installed apps**, or run:
 - The app is unsigned, so Windows SmartScreen may show a warning.
 - The first model load can take longer while the selected Whisper model is
   downloaded and initialized.
-- If transcription is slow, update your NVIDIA driver and confirm GPU runtime
-  support is available.
+- If transcription is slow, click the **Runtime** badge and follow Performance
+  Check.
 
 ## Technical Details
 

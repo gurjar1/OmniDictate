@@ -47,7 +47,7 @@ from app_settings import (
 )
 from app_updates import APP_VERSION, GITHUB_RELEASES_URL, check_latest_release
 from core_logic import DictationWorker, create_backend
-from engines.base import PreviewPayload
+from engines.base import PreviewPayload, RuntimeDiagnostics
 from engines.context_capture import IMAGE_EXTENSIONS, VIDEO_EXTENSIONS, VisualContextManager
 from engines.runtime_detection import torch_cuda_is_available
 from hotkey_listener import HotkeyWorker
@@ -187,6 +187,76 @@ class ReasoningPreviewDialog(QDialog):
         clipboard.setText(self.typed_text())
 
 
+class RuntimeDiagnosticsDialog(QDialog):
+    def __init__(self, diagnostics: RuntimeDiagnostics, parent=None):
+        super().__init__(parent)
+        self.diagnostics = diagnostics
+        self.setWindowTitle("Performance Check")
+        self.resize(620, 520)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(18, 18, 18, 18)
+        layout.setSpacing(12)
+
+        headline = QLabel(diagnostics.headline)
+        headline.setObjectName("cardTitle")
+        headline.setWordWrap(True)
+        layout.addWidget(headline)
+
+        summary = QLabel(diagnostics.summary)
+        summary.setObjectName("cardSubtitle")
+        summary.setWordWrap(True)
+        layout.addWidget(summary)
+
+        if diagnostics.next_steps:
+            steps_label = QLabel("What to do next")
+            steps_label.setObjectName("settingTitle")
+            layout.addWidget(steps_label)
+
+            steps_text = QLabel("\n".join(f"{index}. {step}" for index, step in enumerate(diagnostics.next_steps, start=1)))
+            steps_text.setWordWrap(True)
+            steps_text.setObjectName("helperText")
+            layout.addWidget(steps_text)
+
+        if diagnostics.actions:
+            links_label = QLabel("Helpful links")
+            links_label.setObjectName("settingTitle")
+            layout.addWidget(links_label)
+
+            links_layout = QGridLayout()
+            links_layout.setContentsMargins(0, 0, 0, 0)
+            links_layout.setHorizontalSpacing(8)
+            links_layout.setVerticalSpacing(8)
+            for index, action in enumerate(diagnostics.actions):
+                button = QPushButton(action.label)
+                button.clicked.connect(lambda _checked=False, url=action.url: QDesktopServices.openUrl(QUrl(url)))
+                links_layout.addWidget(button, index // 2, index % 2)
+            layout.addLayout(links_layout)
+
+        details_label = QLabel("Technical details")
+        details_label.setObjectName("settingTitle")
+        layout.addWidget(details_label)
+
+        details = QTextEdit()
+        details.setReadOnly(True)
+        details.setMaximumHeight(120)
+        details.setPlainText("\n".join(diagnostics.technical_details) or "No technical details recorded yet.")
+        layout.addWidget(details)
+
+        button_row = QHBoxLayout()
+        copy_button = QPushButton("Copy diagnostics")
+        copy_button.clicked.connect(self.copy_diagnostics)
+        close_button = QPushButton("Close")
+        close_button.clicked.connect(self.accept)
+        button_row.addStretch()
+        button_row.addWidget(copy_button)
+        button_row.addWidget(close_button)
+        layout.addLayout(button_row)
+
+    def copy_diagnostics(self):
+        QApplication.clipboard().setText(self.diagnostics.plain_text())
+
+
 class ModelPreloadWorker(QObject):
     status_updated = Signal(str)
     preload_completed = Signal(str)
@@ -258,6 +328,7 @@ class OmniDictateApp(QMainWindow):
         if self.app_settings.language in ["None", ""]:
             self.app_settings.language = None
         self.runtime_profile_notices = sanitize_app_settings_for_runtime(self.app_settings)
+        self.runtime_diagnostics: RuntimeDiagnostics | None = None
         if defaults_migrated:
             self.runtime_profile_notices.append(
                 "Release defaults applied: large-v3-turbo, English, and active-app typing."
@@ -662,6 +733,11 @@ class OmniDictateApp(QMainWindow):
         self.model_display_label.setObjectName("settingLabel")
         self.model_display_label.setStyleSheet("color: #888; font-size: 10pt; margin-right: 10px;")
 
+        self.runtime_status_button = QPushButton("Runtime: Not checked")
+        self.runtime_status_button.setObjectName("runtimeStatusButton")
+        self.runtime_status_button.setCursor(Qt.PointingHandCursor)
+        self.runtime_status_button.clicked.connect(self.show_runtime_diagnostics)
+
         self.settings_button = QPushButton()
         self.settings_button.setIcon(self.create_gear_icon())
         self.settings_button.setIconSize(QSize(24, 24))
@@ -672,6 +748,7 @@ class OmniDictateApp(QMainWindow):
         header_layout.addWidget(title)
         header_layout.addStretch()
         header_layout.addWidget(self.model_display_label)
+        header_layout.addWidget(self.runtime_status_button)
         header_layout.addWidget(self.settings_button)
         layout.addLayout(header_layout)
 
@@ -1767,6 +1844,68 @@ class OmniDictateApp(QMainWindow):
             f"Could not check GitHub Releases.\n\n{error_message}",
         )
 
+    @Slot(object)
+    def handle_runtime_update(self, diagnostics):
+        if isinstance(diagnostics, RuntimeDiagnostics):
+            self.runtime_diagnostics = diagnostics
+        else:
+            self.runtime_diagnostics = None
+        self.update_runtime_badge()
+        if self.runtime_diagnostics and self.runtime_diagnostics.status == "cpu-mode":
+            self.statusBar.show()
+            self.statusBar.showMessage("CPU mode: transcription may be slower. Click Runtime for setup help.", 8000)
+        elif self.runtime_diagnostics and self.runtime_diagnostics.status == "error":
+            self.statusBar.show()
+            self.statusBar.showMessage("Runtime check needs attention. Click Runtime for setup help.", 8000)
+
+    def _runtime_badge_parts(self) -> tuple[str, str, str]:
+        diagnostics = self.runtime_diagnostics
+        if diagnostics is None:
+            return "Runtime: Not checked", "unknown", "Start dictation to check whether GPU acceleration is available."
+        if diagnostics.status == "gpu-ready":
+            return "Runtime: GPU ready", "gpu", diagnostics.summary
+        if diagnostics.status == "gpu-compat":
+            return "Runtime: GPU compatibility", "compat", diagnostics.summary
+        if diagnostics.status == "cpu-mode":
+            return "Runtime: CPU mode", "cpu", diagnostics.summary
+        if diagnostics.status == "error":
+            return "Runtime: Check needed", "error", diagnostics.summary
+        return "Runtime: Checked", "unknown", diagnostics.summary
+
+    def update_runtime_badge(self):
+        if not hasattr(self, "runtime_status_button"):
+            return
+        text, state, tooltip = self._runtime_badge_parts()
+        self.runtime_status_button.setText(text)
+        self.runtime_status_button.setToolTip(tooltip)
+        if self.runtime_status_button.property("runtimeState") != state:
+            self.runtime_status_button.setProperty("runtimeState", state)
+            self.runtime_status_button.style().unpolish(self.runtime_status_button)
+            self.runtime_status_button.style().polish(self.runtime_status_button)
+            self.runtime_status_button.update()
+
+    def show_runtime_diagnostics(self):
+        diagnostics = self.runtime_diagnostics
+        if diagnostics is None:
+            diagnostics = RuntimeDiagnostics(
+                status="not-checked",
+                headline="Runtime not checked yet",
+                summary=(
+                    "OmniDictate checks GPU acceleration when the speech model starts. "
+                    "Start dictation once to see whether this PC is using GPU or CPU mode."
+                ),
+                next_steps=[
+                    "Click Start on the main screen.",
+                    "Wait for the model load message.",
+                    "Open this Performance Check again if it shows CPU mode or a runtime error.",
+                ],
+                technical_details=[
+                    f"Selected model: {self.app_settings.model_display_name}",
+                    "No model load has been checked in this app session.",
+                ],
+            )
+        RuntimeDiagnosticsDialog(diagnostics, self).exec()
+
     @Slot()
     def cleanup_update_worker(self):
         self.update_worker = None
@@ -1984,6 +2123,7 @@ class OmniDictateApp(QMainWindow):
         self.dictation_worker.audio_level.connect(self.update_visualizer)
         self.dictation_worker.context_updated.connect(self.handle_context_update)
         self.dictation_worker.route_updated.connect(self.handle_route_update)
+        self.dictation_worker.runtime_updated.connect(self.handle_runtime_update)
         self.dictation_worker.stop_completed.connect(self.dictation_thread.quit)
         self.dictation_thread.started.connect(self.dictation_worker.start_processing)
         self.dictation_thread.finished.connect(self.dictation_worker.deleteLater)
@@ -1994,6 +2134,12 @@ class OmniDictateApp(QMainWindow):
         self.prompt_mode_signal.connect(self.dictation_worker.set_prompt_mode)
         self.start_button.setEnabled(False)
         self.stop_button.setEnabled(True)
+        self.runtime_diagnostics = None
+        self.runtime_status_button.setText("Runtime: Checking...")
+        self.runtime_status_button.setProperty("runtimeState", "checking")
+        self.runtime_status_button.style().unpolish(self.runtime_status_button)
+        self.runtime_status_button.style().polish(self.runtime_status_button)
+        self.runtime_status_button.update()
         self.set_config_enabled(False)
         self.dictation_thread.start()
         self.is_dictation_running = True
@@ -2172,6 +2318,7 @@ class OmniDictateApp(QMainWindow):
         prompt_text = self.app_settings.prompt_mode_display_name
         self.prompt_status_label.setText(f"Mode: {prompt_text}")
         self.model_display_label.setText(f"Model: {self.app_settings.model_display_name}")
+        self.update_runtime_badge()
         self.update_context_summary()
 
     def closeEvent(self, event):
@@ -2288,7 +2435,7 @@ if __name__ == "__main__":
     try:
         import ctypes
 
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("omnicorp.omnidictate.gui.3.0.0")
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("omnicorp.omnidictate.gui.3.0.1")
     except Exception as exc:
         print(f"Error setting AppUserModelID: {exc}")
 
