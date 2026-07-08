@@ -17,7 +17,7 @@ from app_updates import APP_VERSION
 
 DEFAULT_REPORT = ROOT / "smoke_test_assets" / "packaging" / "github-release-preflight.json"
 DEFAULT_TAG = f"v{APP_VERSION}"
-LAST_PUBLIC_TAG = "v3.0.1"
+LAST_PUBLIC_TAG = "v3.0.2"
 INSTALLER = ROOT / "smoke_test_assets" / "packaging" / "installer-whisper-final" / f"OmniDictate_Setup_v{APP_VERSION}.exe"
 SCHEMA_VERSION = 1
 

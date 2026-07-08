@@ -62,7 +62,7 @@ To update manually:
 2. Download the newest installer.
 3. Run it normally.
 
-OmniDictate also has a Settings button named **Check for Updates**. It checks GitHub Releases only when you click it. If a newer version is available, OmniDictate can open the release page for you.
+OmniDictate also has update checks in **Settings**. By default, it checks GitHub Releases once per day when the app opens. If a newer version is available, OmniDictate asks whether to open the release page. It does not download or run installers automatically. You can turn the daily check off or click **Check for Updates** manually at any time.
 
 ## Uninstalling
 

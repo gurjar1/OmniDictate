@@ -73,6 +73,7 @@ class AppSettings:
         )
     )
     preload_model_on_launch: bool = False
+    auto_check_updates: bool = True
     reasoning_requires_preview: bool = True
 
     @classmethod
@@ -130,6 +131,11 @@ class AppSettings:
             preload_model_on_launch=settings.value(
                 "preload_model_on_launch",
                 defaults.preload_model_on_launch,
+                type=bool,
+            ),
+            auto_check_updates=settings.value(
+                "auto_check_updates",
+                defaults.auto_check_updates,
                 type=bool,
             ),
             reasoning_requires_preview=settings.value(

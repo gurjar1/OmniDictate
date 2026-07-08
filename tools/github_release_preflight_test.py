@@ -16,7 +16,7 @@ from app_updates import APP_VERSION
 
 
 CURRENT_TAG = f"v{APP_VERSION}"
-LAST_TAG = "v3.0.1"
+LAST_TAG = "v3.0.2"
 
 
 def _git_result(stdout: str = "", stderr: str = "", returncode: int = 0) -> subprocess.CompletedProcess[str]:

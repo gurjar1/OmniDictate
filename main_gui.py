@@ -2,6 +2,7 @@ import json
 import math
 import os
 import sys
+from datetime import date
 
 from PySide6.QtCore import QEvent, QObject, QMetaObject, QSettings, QSize, Qt, QThread, QTimer, QUrl, Signal, Slot
 from PySide6.QtGui import QColor, QBrush, QDesktopServices, QIcon, QPainter, QPainterPath, QPixmap, QTextCursor
@@ -45,12 +46,14 @@ from app_settings import (
     migrate_release_defaults,
     sanitize_app_settings_for_runtime,
 )
-from app_updates import APP_VERSION, GITHUB_RELEASES_URL, check_latest_release
+from app_updates import APP_VERSION, GITHUB_RELEASES_URL, check_latest_release, should_auto_check_updates
 from core_logic import DictationWorker, create_backend
 from engines.base import PreviewPayload, RuntimeDiagnostics
 from engines.context_capture import IMAGE_EXTENSIONS, VIDEO_EXTENSIONS, VisualContextManager
 from engines.runtime_detection import torch_cuda_is_available
 from hotkey_listener import HotkeyWorker
+
+UPDATE_LAST_CHECKED_DATE_KEY = "update_last_checked_date"
 
 
 class ContextDropArea(QFrame):
@@ -314,7 +317,12 @@ class OmniDictateApp(QMainWindow):
     manual_type_signal = Signal(str)
     prompt_mode_signal = Signal(str)
 
-    def __init__(self, start_hotkeys: bool = True, enable_preload: bool = True):
+    def __init__(
+        self,
+        start_hotkeys: bool = True,
+        enable_preload: bool = True,
+        enable_auto_update_check: bool = True,
+    ):
         super().__init__()
 
         self.setWindowTitle("OmniDictate")
@@ -354,6 +362,11 @@ class OmniDictateApp(QMainWindow):
         self._is_stopping = False
         self._allow_global_hotkeys = start_hotkeys
         self._enable_preload = enable_preload
+        self._enable_auto_update_check = enable_auto_update_check and os.environ.get(
+            "OMNIDICTATE_DISABLE_AUTO_UPDATE_CHECK",
+            "",
+        ) != "1"
+        self._update_check_is_automatic = False
         self._suspend_settings_events = False
         self._settings_controls_enabled = True
 
@@ -414,6 +427,8 @@ class OmniDictateApp(QMainWindow):
             QTimer.singleShot(0, self.show_runtime_profile_notice)
         if self._enable_preload and self.app_settings.preload_model_on_launch:
             QTimer.singleShot(0, self.start_model_preload)
+        if self._enable_auto_update_check:
+            QTimer.singleShot(1200, self.maybe_check_updates_on_launch)
 
     def show_runtime_profile_notice(self):
         notice = "Whisper-only build reset saved experimental settings to Faster-Whisper / Pure transcription."
@@ -444,6 +459,7 @@ class OmniDictateApp(QMainWindow):
         self.screen_context_checkbox.toggled.connect(self.save_settings)
         self.webcam_checkbox.toggled.connect(self.save_settings)
         self.preload_model_checkbox.toggled.connect(self.save_settings)
+        self.auto_update_checkbox.toggled.connect(self.save_settings)
         self.reasoning_preview_checkbox.toggled.connect(self.save_settings)
         self.model_path_edit.editingFinished.connect(self.save_settings)
         self.gguf_server_url_edit.editingFinished.connect(self.save_settings)
@@ -997,6 +1013,7 @@ class OmniDictateApp(QMainWindow):
 
         self.reasoning_preview_checkbox = QCheckBox("Ask before typing")
         self.preload_model_checkbox = QCheckBox("Preload on app launch")
+        self.auto_update_checkbox = QCheckBox("Check once a day")
 
         self.settings_wheel_guard = SettingsWheelGuard(scroll, self)
         for wheel_control in [
@@ -1036,6 +1053,7 @@ class OmniDictateApp(QMainWindow):
         self.restore_defaults_button.setObjectName("ghostButton")
         self.check_updates_button = QPushButton("Check for Updates")
         self.check_updates_button.setObjectName("ghostButton")
+        update_controls = self._build_inline_widget(self.auto_update_checkbox, self.check_updates_button)
 
         if self.whisper_only_runtime:
             self._register_base_tooltip(self.backend_combo, "Faster-Whisper is the only runtime in this public recovery build.")
@@ -1068,11 +1086,18 @@ class OmniDictateApp(QMainWindow):
         self._register_base_tooltip(self.download_model_button, "Download the selected built-in Gemma model now so first use is faster.")
         self._register_base_tooltip(self.reasoning_preview_checkbox, "Ask for approval before OmniDictate types the output from full reasoning mode.")
         self._register_base_tooltip(self.preload_model_checkbox, "Warm the selected built-in Gemma model when the app starts.")
+        self._register_base_tooltip(
+            self.auto_update_checkbox,
+            "Check GitHub Releases once per day when OmniDictate opens. This never downloads or installs updates automatically.",
+        )
         self._register_base_tooltip(self.set_ptt_key_button, "Capture a new push-to-talk key.")
         self._register_base_tooltip(self.type_into_active_app_checkbox, "Turn this off when you only want the transcript inside OmniDictate.")
         self._register_base_tooltip(self.min_ptt_duration_spinbox, "Ignore very short PTT taps so accidental key brushes do not create junk transcripts.")
         self._register_base_tooltip(self.filter_add_edit, "Phrases added here are removed from the final output when they appear exactly.")
-        self._register_base_tooltip(self.check_updates_button, "Check GitHub Releases and open the release page if a newer version is available.")
+        self._register_base_tooltip(
+            self.check_updates_button,
+            "Check GitHub Releases now and open the release page if a newer version is available.",
+        )
         self._register_base_tooltip(self.restore_defaults_button, "Restore all settings to the safe default setup.")
 
         experience_card, experience_body = self._create_settings_card(
@@ -1320,9 +1345,9 @@ class OmniDictateApp(QMainWindow):
         ))
         advanced_body.addWidget(self._create_settings_row(
             "Updates",
-            "Check whether a newer OmniDictate release is available.",
-            "This only checks when you click the button. If a newer version exists, OmniDictate can open the GitHub Releases page.",
-            self.check_updates_button,
+            "Let OmniDictate look for new releases automatically, or check manually now.",
+            "Automatic checks run once per day when OmniDictate opens. They never download or install anything without you.",
+            update_controls,
         ))
         advanced_body.addWidget(self.restore_defaults_button)
         content_layout.addWidget(advanced_card)
@@ -1383,6 +1408,7 @@ class OmniDictateApp(QMainWindow):
             self.video_frame_spinbox.setValue(self.app_settings.video_frame_limit)
             self.model_path_edit.setText(self.app_settings.model_storage_path)
             self.preload_model_checkbox.setChecked(self.app_settings.preload_model_on_launch)
+            self.auto_update_checkbox.setChecked(self.app_settings.auto_check_updates)
             self.reasoning_preview_checkbox.setChecked(self.app_settings.reasoning_requires_preview)
             self.ptt_key_display_label.setText(self.format_key_name(self.app_settings.ptt_key_str))
 
@@ -1430,6 +1456,7 @@ class OmniDictateApp(QMainWindow):
         self.app_settings.video_frame_limit = self.video_frame_spinbox.value()
         self.app_settings.model_storage_path = self.model_path_edit.text().strip()
         self.app_settings.preload_model_on_launch = self.preload_model_checkbox.isChecked()
+        self.app_settings.auto_check_updates = self.auto_update_checkbox.isChecked()
         self.app_settings.reasoning_requires_preview = self.reasoning_preview_checkbox.isChecked()
         self.app_settings.filter_words = [self.filter_list.item(index).text() for index in range(self.filter_list.count())]
         sanitize_app_settings_for_runtime(self.app_settings)
@@ -1607,6 +1634,7 @@ class OmniDictateApp(QMainWindow):
         self._set_control_enabled(self.filter_add_button, advanced_enabled, running_lock_reason)
         self._set_control_enabled(self.filter_remove_button, advanced_enabled, running_lock_reason)
         self._set_control_enabled(self.set_ptt_key_button, advanced_enabled, running_lock_reason)
+        self._set_control_enabled(self.auto_update_checkbox, advanced_enabled, running_lock_reason)
         self._set_control_enabled(self.check_updates_button, advanced_enabled, running_lock_reason)
         self._set_control_enabled(self.restore_defaults_button, advanced_enabled, running_lock_reason)
 
@@ -1785,14 +1813,30 @@ class OmniDictateApp(QMainWindow):
         self.preload_worker = None
         self.preload_thread = None
 
-    def check_for_updates(self):
+    def maybe_check_updates_on_launch(self):
+        if not self.app_settings.auto_check_updates:
+            return
+        last_checked = self.settings.value(UPDATE_LAST_CHECKED_DATE_KEY, "")
+        if not should_auto_check_updates(True, str(last_checked or "")):
+            return
+        self.check_for_updates(automatic=True)
+
+    def _mark_update_check_attempted(self):
+        self.settings.setValue(UPDATE_LAST_CHECKED_DATE_KEY, date.today().isoformat())
+        self.settings.sync()
+
+    def check_for_updates(self, automatic: bool = False):
         if self.update_thread and self.update_thread.isRunning():
-            QMessageBox.information(self, "Update Check", "An update check is already running.")
+            if not automatic:
+                QMessageBox.information(self, "Update Check", "An update check is already running.")
             return
 
+        self._update_check_is_automatic = automatic
+        self._mark_update_check_attempted()
         self.check_updates_button.setEnabled(False)
-        self.statusBar.show()
-        self.statusBar.showMessage("Checking for updates...")
+        if not automatic:
+            self.statusBar.show()
+            self.statusBar.showMessage("Checking for updates...")
         self.update_thread = QThread(self)
         self.update_worker = UpdateCheckWorker()
         self.update_worker.moveToThread(self.update_thread)
@@ -1811,7 +1855,9 @@ class OmniDictateApp(QMainWindow):
     @Slot(str, str)
     def handle_update_available(self, latest_version: str, release_url: str):
         self.statusBar.showMessage(f"Update available: {latest_version}", 5000)
-        message = (
+        prefix = "A newer OmniDictate release is available." if self._update_check_is_automatic else ""
+        prefix_block = f"{prefix}\n\n" if prefix else ""
+        message = prefix_block + (
             f"OmniDictate {latest_version} is available.\n\n"
             f"You are running {APP_VERSION}.\n\n"
             "Open the GitHub Releases page now?"
@@ -1829,6 +1875,8 @@ class OmniDictateApp(QMainWindow):
     @Slot(str)
     def handle_no_update_available(self, latest_version: str):
         self.statusBar.showMessage("OmniDictate is up to date.", 5000)
+        if self._update_check_is_automatic:
+            return
         QMessageBox.information(
             self,
             "No Update Available",
@@ -1838,6 +1886,8 @@ class OmniDictateApp(QMainWindow):
     @Slot(str)
     def handle_update_check_failed(self, error_message: str):
         self.statusBar.showMessage("Could not check for updates.", 5000)
+        if self._update_check_is_automatic:
+            return
         QMessageBox.warning(
             self,
             "Update Check Failed",
@@ -1910,6 +1960,7 @@ class OmniDictateApp(QMainWindow):
     def cleanup_update_worker(self):
         self.update_worker = None
         self.update_thread = None
+        self._update_check_is_automatic = False
         if hasattr(self, "check_updates_button"):
             self.check_updates_button.setEnabled(self._settings_controls_enabled)
 
@@ -2435,7 +2486,7 @@ if __name__ == "__main__":
     try:
         import ctypes
 
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("omnicorp.omnidictate.gui.3.0.2")
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("omnicorp.omnidictate.gui.3.0.3")
     except Exception as exc:
         print(f"Error setting AppUserModelID: {exc}")
 

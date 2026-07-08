@@ -23,7 +23,11 @@ class UiTransportStateTest(unittest.TestCase):
         cls.app = QApplication.instance() or QApplication([])
 
     def setUp(self):
-        self.window = OmniDictateApp(start_hotkeys=False, enable_preload=False)
+        self.window = OmniDictateApp(
+            start_hotkeys=False,
+            enable_preload=False,
+            enable_auto_update_check=False,
+        )
 
     def tearDown(self):
         self.window.close()
@@ -64,6 +68,8 @@ class UiTransportStateTest(unittest.TestCase):
         self.assertTrue(hasattr(self.window, "min_ptt_duration_spinbox"))
         self.assertEqual(AppSettings().min_ptt_duration_ms, 250)
         self.assertEqual(self.window.check_updates_button.text(), "Check for Updates")
+        self.assertTrue(hasattr(self.window, "auto_update_checkbox"))
+        self.assertTrue(AppSettings().auto_check_updates)
         self.assertTrue(hasattr(self.window, "runtime_status_button"))
 
     def test_runtime_badge_uses_plain_language_states(self):

@@ -171,6 +171,7 @@ def main() -> int:
         raise RuntimeError(f"Installed payload points at a build work directory: {install_dir}")
 
     launch_env = os.environ.copy()
+    launch_env["OMNIDICTATE_DISABLE_AUTO_UPDATE_CHECK"] = "1"
     if args.package_profile:
         launch_env["OMNIDICTATE_PACKAGE_PROFILE"] = args.package_profile
     if args.use_isolated_settings:

@@ -88,7 +88,7 @@ def main() -> int:
     if style_path.exists():
         app.setStyleSheet(style_path.read_text(encoding="utf-8"))
 
-    window = OmniDictateApp(start_hotkeys=False, enable_preload=False)
+    window = OmniDictateApp(start_hotkeys=False, enable_preload=False, enable_auto_update_check=False)
     window.resize(1180, 780)
     window._suspend_settings_events = True
     if args.backend != "current":

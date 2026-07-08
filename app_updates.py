@@ -4,11 +4,13 @@ import json
 import re
 import urllib.request
 from dataclasses import dataclass
+from datetime import date
 
 
-APP_VERSION = "3.0.2"
+APP_VERSION = "3.0.3"
 GITHUB_RELEASES_URL = "https://github.com/gurjar1/OmniDictate/releases"
 GITHUB_LATEST_RELEASE_API = "https://api.github.com/repos/gurjar1/OmniDictate/releases/latest"
+AUTO_UPDATE_CHECK_INTERVAL_DAYS = 1
 
 
 @dataclass(slots=True)
@@ -37,6 +39,25 @@ def is_newer_version(latest: str, current: str) -> bool:
     latest_parts = parse_version(latest)
     current_parts = parse_version(current)
     return latest_parts[:3] > current_parts[:3]
+
+
+def should_auto_check_updates(
+    enabled: bool,
+    last_checked_date: str | None,
+    today: date | None = None,
+) -> bool:
+    if not enabled:
+        return False
+    today = today or date.today()
+    if not last_checked_date:
+        return True
+    try:
+        last_checked = date.fromisoformat(str(last_checked_date)[:10])
+    except ValueError:
+        return True
+    if last_checked > today:
+        return True
+    return (today - last_checked).days >= AUTO_UPDATE_CHECK_INTERVAL_DAYS
 
 
 def update_info_from_release(payload: dict, current_version: str = APP_VERSION) -> UpdateInfo:
