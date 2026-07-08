@@ -21,9 +21,10 @@ from engines.whisper_backend import WhisperBackend
 SAMPLE_RATE = 16000
 CHUNK_DURATION = 0.02
 CHUNK_SIZE = int(SAMPLE_RATE * CHUNK_DURATION)
-MAX_REQUEST_QUEUE_SIZE = 2
 MAX_AUDIO_QUEUE_SIZE = 32
-MAX_UTTERANCE_SECONDS = 25
+MAX_REQUEST_QUEUE_SIZE = 16
+MAX_VAD_UTTERANCE_SECONDS = 25
+MAX_PTT_UTTERANCE_SECONDS = 120
 
 
 def get_punctuation_char(punctuation_name: str):
@@ -162,6 +163,7 @@ class DictationWorker(QObject):
         self.audio_buffer: list[np.ndarray] = []
         self.vad_active = False
         self.frames_since_speech = 0
+        self._ptt_chunk_has_speech = False
         self._last_audio_overflow_notice = 0.0
 
         self.typing_thread_instance = None
@@ -190,6 +192,12 @@ class DictationWorker(QObject):
         if is_pressed:
             if not self._ptt_active:
                 self._ptt_started_at = time.monotonic()
+                self._ptt_chunk_has_speech = False
+                self.frames_since_speech = 0
+                if self.vad_active:
+                    self.recording = False
+                    self.vad_active = False
+                    self.audio_buffer = []
             self._ptt_active = True
             return
 
@@ -197,22 +205,33 @@ class DictationWorker(QObject):
         started_at = self._ptt_started_at
         self._ptt_active = is_pressed
         self._ptt_started_at = None
-        if not was_ptt_active or not self.recording or self.vad_active:
+        if not was_ptt_active:
+            return
+        if not self.recording or self.vad_active:
+            self.audio_buffer = []
+            self._ptt_chunk_has_speech = False
+            self.frames_since_speech = 0
+            if self._is_running:
+                self.status_updated.emit("Listening...")
             return
 
         self.recording = False
         elapsed = time.monotonic() - started_at if started_at else 0.0
         if elapsed < self.min_ptt_duration_seconds:
             self.audio_buffer = []
+            self._ptt_chunk_has_speech = False
             if self._is_running:
                 self.status_updated.emit("Ignored short PTT tap.")
                 self.status_updated.emit("Listening...")
             return
 
         try:
-            self._process_audio_buffer()
+            self._process_audio_buffer(source="ptt-final")
         except Exception as exc:
             self.error_occurred.emit(f"PTT processing error: {exc}")
+        finally:
+            self._ptt_chunk_has_speech = False
+            self.frames_since_speech = 0
 
     @Slot(str)
     def set_prompt_mode(self, prompt_mode: str):
@@ -257,6 +276,7 @@ class DictationWorker(QObject):
         self.vad_active = False
         self.frames_since_speech = 0
         self.audio_buffer = []
+        self._ptt_chunk_has_speech = False
         self._clear_queue(self.audio_queue)
         self._clear_queue(self.request_queue)
         self._clear_queue(self.text_queue)
@@ -332,6 +352,7 @@ class DictationWorker(QObject):
         self.recording = False
         self.vad_active = False
         self.audio_buffer = []
+        self._ptt_chunk_has_speech = False
         self.context_updated.emit(self.visual_context_manager.describe())
         self.status_updated.emit("Idle")
         self.stop_completed.emit()
@@ -377,13 +398,7 @@ class DictationWorker(QObject):
                 self.audio_level.emit(float(amplitude))
 
                 if self._ptt_active:
-                    if not self.recording:
-                        self.status_updated.emit("Recording (PTT)...")
-                        self.recording = True
-                        self.vad_active = False
-                        self.audio_buffer = []
-                    self.audio_buffer.append(chunk_np)
-                    self.frames_since_speech = 0
+                    self._handle_ptt_chunk(chunk_np, amplitude)
                     continue
 
                 if not self._vad_enabled:
@@ -405,13 +420,44 @@ class DictationWorker(QObject):
                         if self.frames_since_speech > self.silence_frames:
                             self.recording = False
                             self.vad_active = False
-                            self._process_audio_buffer()
+                            self._process_audio_buffer(source="vad")
         except queue.Empty:
             return
         except Exception as exc:
             self.error_occurred.emit(f"Audio check loop error: {exc}")
 
-    def _process_audio_buffer(self):
+    def _handle_ptt_chunk(self, chunk_np: np.ndarray, amplitude: float):
+        if not self.recording or self.vad_active:
+            self.status_updated.emit("Recording (PTT)...")
+            self.recording = True
+            self.vad_active = False
+            self.audio_buffer = []
+            self.frames_since_speech = 0
+            self._ptt_chunk_has_speech = False
+
+        if amplitude > self.silence_threshold:
+            if not self._ptt_chunk_has_speech:
+                self.audio_buffer = []
+            self._ptt_chunk_has_speech = True
+            self.frames_since_speech = 0
+            self.audio_buffer.append(chunk_np)
+            return
+
+        if not self._ptt_chunk_has_speech:
+            self.frames_since_speech = 0
+            self.audio_buffer = []
+            return
+
+        self.audio_buffer.append(chunk_np)
+        self.frames_since_speech += 1
+        if self.frames_since_speech > self.silence_frames:
+            self._process_audio_buffer(source="ptt-chunk")
+            self._ptt_chunk_has_speech = False
+            self.frames_since_speech = 0
+            if self._is_running and self._ptt_active:
+                self.status_updated.emit("Recording (PTT)...")
+
+    def _process_audio_buffer(self, source: str = "vad"):
         if not self.audio_buffer:
             if self._is_running and not self._ptt_active:
                 self.status_updated.emit("Listening...")
@@ -428,23 +474,29 @@ class DictationWorker(QObject):
         if audio_float32.size == 0:
             return
 
-        max_samples = int(MAX_UTTERANCE_SECONDS * SAMPLE_RATE)
+        max_seconds = MAX_PTT_UTTERANCE_SECONDS if source.startswith("ptt") else MAX_VAD_UTTERANCE_SECONDS
+        max_samples = int(max_seconds * SAMPLE_RATE)
         if audio_float32.shape[0] > max_samples:
+            label = "PTT recording" if source.startswith("ptt") else "VAD utterance"
+            self.status_updated.emit(
+                f"{label} exceeded {max_seconds} seconds; transcribing the first {max_seconds} seconds."
+            )
             audio_float32 = audio_float32[:max_samples]
 
         request = self._build_transcription_request(audio_float32)
         if request is None:
             return
 
+        self._enqueue_transcription_request(request)
+
+    def _enqueue_transcription_request(self, request: TranscriptionRequest) -> None:
         self.status_updated.emit("Queued utterance for transcription...")
         try:
             self.request_queue.put_nowait(request)
         except queue.Full:
-            try:
-                self.request_queue.get_nowait()
-            except queue.Empty:
-                pass
-            self.request_queue.put_nowait(request)
+            self.error_occurred.emit(
+                "Transcription is behind and the phrase queue is full. Pause briefly or use a faster model."
+            )
 
     def _build_transcription_request(self, audio_float32: np.ndarray) -> TranscriptionRequest | None:
         try:

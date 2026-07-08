@@ -26,7 +26,8 @@ and types the result into the user's active application.
 
 - Whisper-only dictation works without Gemma dependencies or external servers.
 - VAD starts and stops recording on silence threshold.
-- PTT overrides VAD while held.
+- PTT overrides VAD while held and can queue completed phrases after silence
+  without waiting for key release.
 - Spoken punctuation maps to punctuation characters.
 - Exact filter phrases are not typed.
 - Language selection passes through to the backend.

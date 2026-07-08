@@ -218,6 +218,18 @@ Result: passed. The quick gate now compiles
 `tools\microphone_capture_diagnostic.py`; it does not record from the physical
 microphone during normal non-interactive verification.
 
+Latest rerun after adding PTT pause-based phrase chunking:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\verify_local.ps1
+```
+
+Result: passed on 2026-07-08. `tools\worker_behavior_test.py` now verifies
+that PTT can queue a completed phrase before key release, ignores leading
+silence instead of sending junk audio, keeps 60-second PTT audio from being
+cut to the old 25-second VAD cap, and preserves existing queued phrases when
+the transcription queue is full.
+
 Alternative STT adapter command:
 
 ```powershell

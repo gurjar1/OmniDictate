@@ -194,6 +194,10 @@ release.
   worker drops queued transcription requests on stop; an in-flight model call
   still cannot be interrupted mid-call, so the UI remains in a stopping state
   until cleanup completes.
+- PTT now uses the same silence threshold concept as VAD to split long held-key
+  dictation into ordered phrase requests before key release. Leading silence is
+  discarded, the final phrase is flushed on release, and the old 25-second
+  utterance cap no longer cuts normal PTT recordings.
 - The #27 keyboard-simulation request is handled by `type_into_active_app`; if
   it is off, transcripts are displayed but no keystrokes are queued. The #18
   short-PTT issue is mitigated by `min_ptt_duration_ms`, default `250 ms`.

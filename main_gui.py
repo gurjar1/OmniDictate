@@ -1180,7 +1180,7 @@ class OmniDictateApp(QMainWindow):
         speech_body.addWidget(self._create_settings_row(
             "Silence sensitivity",
             "Lower values make voice detection trigger more easily. Higher values make it wait for louder speech.",
-            "This affects VAD mode only. If OmniDictate starts too early, raise the number. If it misses quiet speech, lower it.",
+            "This affects VAD start/stop and PTT pause chunking. If OmniDictate starts too early, raise the number. If it misses quiet speech, lower it.",
             self.silence_spinbox,
         ))
         speech_body.addWidget(self._create_settings_row(

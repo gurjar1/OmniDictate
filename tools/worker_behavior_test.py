@@ -13,7 +13,13 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app_settings import AppSettings
-from core_logic import CHUNK_SIZE, SAMPLE_RATE, DictationWorker
+from core_logic import (
+    CHUNK_SIZE,
+    MAX_PTT_UTTERANCE_SECONDS,
+    MAX_REQUEST_QUEUE_SIZE,
+    SAMPLE_RATE,
+    DictationWorker,
+)
 from engines.base import PromptMode, TargetAppContext, TranscriptionRequest, TranscriptionResult, VisualContextSnapshot
 from engines.context_capture import VisualContextManager
 
@@ -58,6 +64,11 @@ def _result(text: str) -> TranscriptionResult:
         used_visual_context=False,
         latency_seconds=0.01,
     )
+
+
+def _feed_audio_chunk(worker: DictationWorker, chunk: np.ndarray) -> None:
+    worker.audio_queue.put_nowait(chunk.astype(np.int16, copy=False).tobytes())
+    worker._check_audio_queue()
 
 
 class _FakeKeyboard:
@@ -115,6 +126,74 @@ class WorkerBehaviorTest(unittest.TestCase):
         worker.set_ptt_state(False)
 
         self.assertFalse(worker.request_queue.empty())
+
+    def test_ptt_auto_chunks_on_silence_before_release(self):
+        worker = _build_worker()
+        worker._is_running = True
+        worker.silence_frames = 2
+        worker._build_transcription_request = _fake_request
+        speech = np.ones(CHUNK_SIZE, dtype=np.int16) * 1200
+        silence = np.zeros(CHUNK_SIZE, dtype=np.int16)
+
+        worker.set_ptt_state(True)
+        _feed_audio_chunk(worker, speech)
+        _feed_audio_chunk(worker, silence)
+        _feed_audio_chunk(worker, silence)
+        _feed_audio_chunk(worker, silence)
+
+        self.assertEqual(worker.request_queue.qsize(), 1)
+        first_request = worker.request_queue.get_nowait()
+        self.assertGreaterEqual(first_request.audio.shape[0], CHUNK_SIZE)
+
+        _feed_audio_chunk(worker, speech)
+        worker.set_ptt_state(False)
+
+        self.assertEqual(worker.request_queue.qsize(), 1)
+        second_request = worker.request_queue.get_nowait()
+        self.assertEqual(second_request.audio.shape[0], CHUNK_SIZE)
+
+    def test_ptt_leading_silence_does_not_queue_junk_request(self):
+        worker = _build_worker()
+        worker._is_running = True
+        worker.silence_frames = 2
+        worker._build_transcription_request = _fake_request
+        silence = np.zeros(CHUNK_SIZE, dtype=np.int16)
+
+        worker.set_ptt_state(True)
+        _feed_audio_chunk(worker, silence)
+        _feed_audio_chunk(worker, silence)
+        _feed_audio_chunk(worker, silence)
+        worker.set_ptt_state(False)
+
+        self.assertTrue(worker.request_queue.empty())
+
+    def test_long_ptt_audio_is_not_cut_to_old_vad_limit(self):
+        worker = _build_worker()
+        worker._is_running = True
+        worker._build_transcription_request = _fake_request
+        long_seconds = 60
+        worker.audio_buffer = [np.ones(SAMPLE_RATE * long_seconds, dtype=np.int16) * 1200]
+
+        worker._process_audio_buffer(source="ptt-final")
+
+        request = worker.request_queue.get_nowait()
+        self.assertEqual(request.audio.shape[0], SAMPLE_RATE * long_seconds)
+        self.assertLess(long_seconds, MAX_PTT_UTTERANCE_SECONDS)
+
+    def test_transcription_queue_overflow_keeps_existing_ordered_requests(self):
+        worker = _build_worker()
+        worker._is_running = True
+        existing = [
+            _fake_request(np.ones(CHUNK_SIZE, dtype=np.float32) * index)
+            for index in range(MAX_REQUEST_QUEUE_SIZE)
+        ]
+        for request in existing:
+            worker.request_queue.put_nowait(request)
+
+        worker._enqueue_transcription_request(_fake_request(np.ones(CHUNK_SIZE, dtype=np.float32) * 999))
+
+        self.assertEqual(worker.request_queue.qsize(), MAX_REQUEST_QUEUE_SIZE)
+        self.assertIs(worker.request_queue.get_nowait(), existing[0])
 
     def test_short_ptt_tap_is_ignored(self):
         worker = _build_worker()

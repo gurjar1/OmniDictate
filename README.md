@@ -81,7 +81,7 @@ The uninstaller removes the installed app files. Downloaded model caches may rem
 - Local speech-to-text with Whisper.
 - Model selection, including `large-v3-turbo`.
 - Voice Activity Detection (VAD).
-- Push-to-Talk (PTT).
+- Push-to-Talk (PTT) with pause-based phrase chunking for longer dictation.
 - Optional typing into the active Windows app.
 - Transcribe Only mode for keeping text inside OmniDictate without keyboard simulation.
 - Preferred language selection, including Auto Detect and Czech.
@@ -103,11 +103,13 @@ If **Type into active app** is on, OmniDictate types into the frontmost app. If 
 
 If OmniDictate itself is the active window, it keeps the transcript inside OmniDictate and does not replay old text into the next app you click.
 
+In PTT mode, short pauses while the key is still held are used as phrase breaks. OmniDictate can queue the completed phrase for transcription and keep listening until you release the key, then it flushes the final phrase.
+
 ## Settings
 
 - **Whisper model:** Smaller models are faster. Larger models can be more accurate.
 - **Preferred language:** Use Auto Detect or choose a fixed language.
-- **Silence sensitivity:** Lower values trigger recording more easily.
+- **Silence sensitivity:** Lower values detect quieter speech. Higher values require louder speech and can split PTT phrases sooner.
 - **Typing pace:** Slow this down if another app drops letters.
 - **Typing output:** Turn off active-app typing for Transcribe Only mode.
 - **Minimum PTT hold:** Ignore very short accidental PTT key taps.
