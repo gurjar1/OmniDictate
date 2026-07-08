@@ -2435,7 +2435,7 @@ if __name__ == "__main__":
     try:
         import ctypes
 
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("omnicorp.omnidictate.gui.3.0.1")
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("omnicorp.omnidictate.gui.3.0.2")
     except Exception as exc:
         print(f"Error setting AppUserModelID: {exc}")
 

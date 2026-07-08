@@ -1,8 +1,8 @@
 ; OmniDictate_Setup.iss
-; Script for Inno Setup - v3.0.0
+; Script for Inno Setup - v3.0.2
 
 #ifndef AppVersion
-#define AppVersion "3.0.0"
+#define AppVersion "3.0.2"
 #endif
 #ifndef SourceDir
 #define SourceDir "dist\OmniDictate"

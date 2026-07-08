@@ -12,12 +12,13 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tools import release_status_report
+from app_updates import APP_VERSION
 
 
 DEFAULT_REPORT = ROOT / "smoke_test_assets" / "packaging" / "github-release-preflight.json"
-DEFAULT_TAG = "v3.0.0"
-LAST_PUBLIC_TAG = "v2.0.2"
-INSTALLER = ROOT / "smoke_test_assets" / "packaging" / "installer-whisper-final" / "OmniDictate_Setup_v3.0.0.exe"
+DEFAULT_TAG = f"v{APP_VERSION}"
+LAST_PUBLIC_TAG = "v3.0.1"
+INSTALLER = ROOT / "smoke_test_assets" / "packaging" / "installer-whisper-final" / f"OmniDictate_Setup_v{APP_VERSION}.exe"
 SCHEMA_VERSION = 1
 
 
@@ -41,6 +42,13 @@ def _tag_exists(remote: str, tag: str) -> tuple[bool, str, str]:
 
 def _generated_at_utc() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _display_path(path: Path) -> str:
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
 
 
 def build_github_release_preflight(remote: str = "origin", tag: str = DEFAULT_TAG) -> tuple[str, list[str], dict]:
@@ -103,10 +111,10 @@ def build_github_release_preflight(remote: str = "origin", tag: str = DEFAULT_TA
         "scope_gate_statuses": scope_gate_statuses,
         "pending_release_scope_gates": pending_scope_gates,
         "release_status_report": release_payload,
-        "installer": str(INSTALLER.relative_to(ROOT)),
+        "installer": _display_path(INSTALLER),
         "installer_exists": INSTALLER.is_file(),
-        "suggested_release_title": "OmniDictate v3.0.0 - Whisper-only baseline",
-        "release_notes": "docs/release/RELEASE_NOTES_DRAFT_3.0.0-whisper.md",
+        "suggested_release_title": f"OmniDictate v{APP_VERSION}",
+        "release_notes": f"docs/release/RELEASE_NOTES_{APP_VERSION}.md",
         "publishing_runbook": "docs/release/PUBLISHING_RUNBOOK_3.0.0.md",
         "warnings": warnings,
         "failures": failures,

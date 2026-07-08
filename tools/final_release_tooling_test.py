@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from app_updates import APP_VERSION
 from tools import final_release_preflight, open_gate_summary
 
 
@@ -22,7 +23,7 @@ class FinalReleaseToolingTest(unittest.TestCase):
         self.assertEqual(commands[0], "$env:OMNIDICTATE_PACKAGE_PROFILE='whisper-only'")
         self.assertIn("dist-whisper-final", joined)
         self.assertIn("installer-whisper-final", joined)
-        self.assertIn("OmniDictate_Setup_v3.0.0.exe", joined)
+        self.assertIn(f"OmniDictate_Setup_v{APP_VERSION}.exe", joined)
         self.assertNotIn("whisper-release-smoke", joined)
         self.assertNotIn("OmniDictate_Setup_v3.0.0-whisper", joined)
         self.assertNotIn("--package-profile", joined)
@@ -40,7 +41,10 @@ class FinalReleaseToolingTest(unittest.TestCase):
         payload = json.loads(output.getvalue())
         self.assertEqual(rc, 0)
         self.assertEqual(payload["status"], "ready-to-run")
-        self.assertEqual(payload["final_installer"], r"smoke_test_assets\packaging\installer-whisper-final\OmniDictate_Setup_v3.0.0.exe")
+        self.assertEqual(
+            payload["final_installer"],
+            rf"smoke_test_assets\packaging\installer-whisper-final\OmniDictate_Setup_v{APP_VERSION}.exe",
+        )
         self.assertEqual(payload["final_bundle"], r"smoke_test_assets\packaging\dist-whisper-final\OmniDictate")
         self.assertEqual(payload["final_dist"], r"smoke_test_assets\packaging\dist-whisper-final")
         self.assertEqual(payload["final_installer_dir"], r"smoke_test_assets\packaging\installer-whisper-final")
@@ -54,7 +58,7 @@ class FinalReleaseToolingTest(unittest.TestCase):
 
         self.assertNotIn("final_public_release_gate.py", gate_commands)
         self.assertNotIn("final-public-release-gate-report.json", gate_commands)
-        self.assertIn("OmniDictate_Setup_v3.0.0.exe", preflight_commands)
+        self.assertIn(f"OmniDictate_Setup_v{APP_VERSION}.exe", preflight_commands)
         self.assertNotIn("dist-whisper\\OmniDictate", gate_commands)
 
 

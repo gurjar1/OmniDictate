@@ -12,6 +12,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tools import final_public_release_gate, open_gate_summary
+from app_updates import APP_VERSION
 
 
 class FinalPublicReleaseGateTest(unittest.TestCase):
@@ -38,7 +39,10 @@ class FinalPublicReleaseGateTest(unittest.TestCase):
         self.assertIn("file_sha256.py", joined)
         self.assertNotIn("Get-FileHash", joined)
         self.assertIn("final_release_gate_audit.py", joined)
-        self.assertEqual(paths["installer"], r"smoke_test_assets\packaging\installer-whisper-final\OmniDictate_Setup_v3.0.0.exe")
+        self.assertEqual(
+            paths["installer"],
+            rf"smoke_test_assets\packaging\installer-whisper-final\OmniDictate_Setup_v{APP_VERSION}.exe",
+        )
         self.assertEqual(paths["bundle"], r"smoke_test_assets\packaging\dist-whisper-final\OmniDictate")
 
     def test_dry_run_writes_summary_without_building(self):

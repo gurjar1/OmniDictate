@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -11,6 +12,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tools import github_release_preflight
+from app_updates import APP_VERSION
+
+
+CURRENT_TAG = f"v{APP_VERSION}"
+LAST_TAG = "v3.0.1"
 
 
 def _git_result(stdout: str = "", stderr: str = "", returncode: int = 0) -> subprocess.CompletedProcess[str]:
@@ -22,10 +28,10 @@ class GitHubReleasePreflightTest(unittest.TestCase):
         def fake_git(args: list[str]) -> subprocess.CompletedProcess[str]:
             if args == ["remote", "get-url", "origin"]:
                 return _git_result("https://github.com/gurjar1/OmniDictate.git\n")
-            if args == ["ls-remote", "--tags", "origin", "refs/tags/v3.0.0"]:
+            if args == ["ls-remote", "--tags", "origin", f"refs/tags/{CURRENT_TAG}"]:
                 return _git_result("")
-            if args == ["ls-remote", "--tags", "origin", "refs/tags/v2.0.2"]:
-                return _git_result("abc123\trefs/tags/v2.0.2\n")
+            if args == ["ls-remote", "--tags", "origin", f"refs/tags/{LAST_TAG}"]:
+                return _git_result(f"abc123\trefs/tags/{LAST_TAG}\n")
             raise AssertionError(f"unexpected git args: {args}")
 
         release_payload = {
@@ -42,12 +48,17 @@ class GitHubReleasePreflightTest(unittest.TestCase):
                 },
             },
         }
-        with mock.patch.object(github_release_preflight, "_git", side_effect=fake_git), mock.patch.object(
-            github_release_preflight.release_status_report,
-            "build_release_status",
-            return_value=("blocked", [], release_payload),
-        ):
-            status, failures, payload = github_release_preflight.build_github_release_preflight()
+        with tempfile.TemporaryDirectory() as temp_dir:
+            installer = Path(temp_dir) / f"OmniDictate_Setup_v{APP_VERSION}.exe"
+            installer.write_bytes(b"installer")
+            with mock.patch.object(github_release_preflight, "INSTALLER", installer), mock.patch.object(
+                github_release_preflight, "_git", side_effect=fake_git
+            ), mock.patch.object(
+                github_release_preflight.release_status_report,
+                "build_release_status",
+                return_value=("blocked", [], release_payload),
+            ):
+                status, failures, payload = github_release_preflight.build_github_release_preflight()
 
         self.assertEqual(status, "blocked")
         self.assertEqual(failures, [])
@@ -69,10 +80,10 @@ class GitHubReleasePreflightTest(unittest.TestCase):
         def fake_git(args: list[str]) -> subprocess.CompletedProcess[str]:
             if args == ["remote", "get-url", "origin"]:
                 return _git_result("https://github.com/gurjar1/OmniDictate.git\n")
-            if args == ["ls-remote", "--tags", "origin", "refs/tags/v3.0.0"]:
-                return _git_result("def456\trefs/tags/v3.0.0\n")
-            if args == ["ls-remote", "--tags", "origin", "refs/tags/v2.0.2"]:
-                return _git_result("abc123\trefs/tags/v2.0.2\n")
+            if args == ["ls-remote", "--tags", "origin", f"refs/tags/{CURRENT_TAG}"]:
+                return _git_result(f"def456\trefs/tags/{CURRENT_TAG}\n")
+            if args == ["ls-remote", "--tags", "origin", f"refs/tags/{LAST_TAG}"]:
+                return _git_result(f"abc123\trefs/tags/{LAST_TAG}\n")
             raise AssertionError(f"unexpected git args: {args}")
 
         with mock.patch.object(github_release_preflight, "_git", side_effect=fake_git), mock.patch.object(
@@ -90,10 +101,10 @@ class GitHubReleasePreflightTest(unittest.TestCase):
         def fake_git(args: list[str]) -> subprocess.CompletedProcess[str]:
             if args == ["remote", "get-url", "origin"]:
                 return _git_result("https://github.com/gurjar1/OmniDictate.git\n")
-            if args == ["ls-remote", "--tags", "origin", "refs/tags/v3.0.0"]:
+            if args == ["ls-remote", "--tags", "origin", f"refs/tags/{CURRENT_TAG}"]:
                 return _git_result(stderr="network unavailable", returncode=128)
-            if args == ["ls-remote", "--tags", "origin", "refs/tags/v2.0.2"]:
-                return _git_result("abc123\trefs/tags/v2.0.2\n")
+            if args == ["ls-remote", "--tags", "origin", f"refs/tags/{LAST_TAG}"]:
+                return _git_result(f"abc123\trefs/tags/{LAST_TAG}\n")
             raise AssertionError(f"unexpected git args: {args}")
 
         with mock.patch.object(github_release_preflight, "_git", side_effect=fake_git), mock.patch.object(
@@ -104,7 +115,7 @@ class GitHubReleasePreflightTest(unittest.TestCase):
             status, failures, _payload = github_release_preflight.build_github_release_preflight()
 
         self.assertEqual(status, "invalid")
-        self.assertTrue(any("could not query remote tag v3.0.0" in failure for failure in failures))
+        self.assertTrue(any(f"could not query remote tag {CURRENT_TAG}" in failure for failure in failures))
 
 
 if __name__ == "__main__":

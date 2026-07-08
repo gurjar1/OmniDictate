@@ -167,6 +167,28 @@ class WorkerBehaviorTest(unittest.TestCase):
 
         self.assertTrue(worker.request_queue.empty())
 
+    def test_ptt_auto_chunk_respects_minimum_hold_setting(self):
+        worker = _build_worker()
+        worker._is_running = True
+        worker.silence_frames = 2
+        worker.min_ptt_duration_seconds = 10.0
+        worker._build_transcription_request = _fake_request
+        speech = np.ones(CHUNK_SIZE, dtype=np.int16) * 1200
+        silence = np.zeros(CHUNK_SIZE, dtype=np.int16)
+
+        worker.set_ptt_state(True)
+        _feed_audio_chunk(worker, speech)
+        _feed_audio_chunk(worker, silence)
+        _feed_audio_chunk(worker, silence)
+        _feed_audio_chunk(worker, silence)
+
+        self.assertTrue(worker.request_queue.empty())
+
+        worker.set_ptt_state(False)
+
+        self.assertTrue(worker.request_queue.empty())
+        self.assertEqual(worker.audio_buffer, [])
+
     def test_long_ptt_audio_is_not_cut_to_old_vad_limit(self):
         worker = _build_worker()
         worker._is_running = True

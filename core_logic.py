@@ -451,11 +451,20 @@ class DictationWorker(QObject):
         self.audio_buffer.append(chunk_np)
         self.frames_since_speech += 1
         if self.frames_since_speech > self.silence_frames:
+            if not self._ptt_min_hold_elapsed():
+                return
             self._process_audio_buffer(source="ptt-chunk")
             self._ptt_chunk_has_speech = False
             self.frames_since_speech = 0
             if self._is_running and self._ptt_active:
                 self.status_updated.emit("Recording (PTT)...")
+
+    def _ptt_min_hold_elapsed(self) -> bool:
+        if self.min_ptt_duration_seconds <= 0:
+            return True
+        if self._ptt_started_at is None:
+            return True
+        return (time.monotonic() - self._ptt_started_at) >= self.min_ptt_duration_seconds
 
     def _process_audio_buffer(self, source: str = "vad"):
         if not self.audio_buffer:

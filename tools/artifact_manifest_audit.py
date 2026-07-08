@@ -10,7 +10,12 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_MANIFEST = ROOT / "docs" / "release" / "ARTIFACT_MANIFEST_3.0.0-whisper.md"
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from app_updates import APP_VERSION
+
+DEFAULT_MANIFEST = ROOT / "docs" / "release" / f"ARTIFACT_MANIFEST_{APP_VERSION}-whisper.md"
 
 
 @dataclass(frozen=True)

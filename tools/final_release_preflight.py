@@ -2,10 +2,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from app_updates import APP_VERSION
+
 PYINSTALLER = ROOT / "venv" / "Scripts" / "pyinstaller.exe"
 PYTHON = ROOT / "venv" / "Scripts" / "python.exe"
 ISCC = Path(r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe")
@@ -13,7 +19,7 @@ FINAL_DIST = Path(r"smoke_test_assets\packaging\dist-whisper-final")
 FINAL_BUNDLE = FINAL_DIST / "OmniDictate"
 FINAL_BUILD = Path(r"smoke_test_assets\packaging\build-whisper-final")
 FINAL_INSTALLER_DIR = Path(r"smoke_test_assets\packaging\installer-whisper-final")
-FINAL_INSTALLER = FINAL_INSTALLER_DIR / "OmniDictate_Setup_v3.0.0.exe"
+FINAL_INSTALLER = FINAL_INSTALLER_DIR / f"OmniDictate_Setup_v{APP_VERSION}.exe"
 
 
 def _repo_rel(path: Path) -> str:
@@ -24,7 +30,7 @@ def _final_commands() -> list[str]:
     return [
         r"$env:OMNIDICTATE_PACKAGE_PROFILE='whisper-only'",
         rf".\venv\Scripts\pyinstaller.exe --clean --noconfirm --distpath {_repo_rel(FINAL_DIST)} --workpath {_repo_rel(FINAL_BUILD)} OmniDictate.spec",
-        rf"& '{ISCC}' /DAppVersion='3.0.0' /DSourceDir='{_repo_rel(FINAL_BUNDLE)}' /DInstallerOutputDir='{_repo_rel(FINAL_INSTALLER_DIR)}' /DCompressionMode=none /DSolidCompressionMode=no OmniDictate_Setup.iss",
+        rf"& '{ISCC}' /DAppVersion='{APP_VERSION}' /DSourceDir='{_repo_rel(FINAL_BUNDLE)}' /DInstallerOutputDir='{_repo_rel(FINAL_INSTALLER_DIR)}' /DCompressionMode=none /DSolidCompressionMode=no OmniDictate_Setup.iss",
         rf".\venv\Scripts\python.exe tools\packaged_app_smoke.py --installer {_repo_rel(FINAL_INSTALLER)} --install-dir ""$env:LOCALAPPDATA\OmniDictateFinalSmoke"" --screenshot smoke_test_assets\\ui\\packaged-whisper-final.png --launch-timeout 180 --package-smoke-model large-v3-turbo --package-smoke-load-whisper",
         rf"powershell -ExecutionPolicy Bypass -File tools\installer_smoke.ps1 -InstallerPath {_repo_rel(FINAL_INSTALLER)} -InstallDir ""$env:LOCALAPPDATA\OmniDictate"" -UseInstallerDefaults",
         rf".\venv\Scripts\python.exe tools\package_size_audit.py {_repo_rel(FINAL_BUNDLE)} --top 8 --fail-over-mb 330",
@@ -58,7 +64,7 @@ def _validate_static_inputs() -> list[str]:
 
     iss_text = (ROOT / "OmniDictate_Setup.iss").read_text(encoding="utf-8")
     for snippet in [
-        '#define AppVersion "3.0.0"',
+        f'#define AppVersion "{APP_VERSION}"',
         '#define DefaultDir "{localappdata}\\OmniDictate"',
         '#define PrivilegesRequiredMode "lowest"',
         "OutputBaseFilename=OmniDictate_Setup_v{#AppVersion}",
@@ -69,7 +75,7 @@ def _validate_static_inputs() -> list[str]:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate and print the final v3.0.0 release build sequence without building.")
+    parser = argparse.ArgumentParser(description=f"Validate and print the final v{APP_VERSION} release build sequence without building.")
     parser.add_argument("--json", action="store_true", help="Emit JSON instead of text.")
     parser.add_argument("--report-json", default="", help="Optional path for a JSON preflight report.")
     return parser.parse_args()
@@ -87,7 +93,7 @@ def main() -> int:
         "commands": _final_commands(),
         "warnings": [
             "Do not run the final build until open release-scope gates pass or are explicitly scoped out.",
-            "After final build, update docs/release/ARTIFACT_MANIFEST_3.0.0-whisper.md with final artifact hashes.",
+            f"After final build, update docs/release/ARTIFACT_MANIFEST_{APP_VERSION}-whisper.md with final artifact hashes.",
         ],
         "failures": failures,
     }
@@ -98,7 +104,7 @@ def main() -> int:
     if args.json:
         print(json.dumps(payload, indent=2))
     else:
-        print("OmniDictate final v3.0.0 release preflight")
+        print(f"OmniDictate final v{APP_VERSION} release preflight")
         print(f"Status: {payload['status']}")
         print(f"Final installer: {payload['final_installer']}")
         print("")

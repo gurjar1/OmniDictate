@@ -12,6 +12,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from tools.final_release_gate_audit import audit_final_release
+from app_updates import APP_VERSION
 
 
 def _preflight(bundle: Path, installer: Path, status: str = "ready-to-run") -> dict:
@@ -28,11 +29,14 @@ def _preflight(bundle: Path, installer: Path, status: str = "ready-to-run") -> d
 
 
 class FinalReleaseGateAuditTest(unittest.TestCase):
+    def _installer_name(self) -> str:
+        return f"OmniDictate_Setup_v{APP_VERSION}.exe"
+
     def test_valid_final_artifacts_pass(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             bundle = root / "dist-whisper-final" / "OmniDictate"
-            installer = root / "installer-whisper-final" / "OmniDictate_Setup_v3.0.0.exe"
+            installer = root / "installer-whisper-final" / self._installer_name()
             bundle.mkdir(parents=True)
             installer.parent.mkdir(parents=True)
             (bundle / "OmniDictate.exe").write_bytes(b"bundle")
@@ -53,7 +57,7 @@ class FinalReleaseGateAuditTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             bundle = root / "dist-whisper-final" / "OmniDictate"
-            installer = root / "installer-whisper-final" / "OmniDictate_Setup_v3.0.0-whisper-release-smoke.exe"
+            installer = root / "installer-whisper-final" / f"OmniDictate_Setup_v{APP_VERSION}-whisper-release-smoke.exe"
             bundle.mkdir(parents=True)
             installer.parent.mkdir(parents=True)
             (bundle / "OmniDictate.exe").write_bytes(b"bundle")
@@ -64,14 +68,14 @@ class FinalReleaseGateAuditTest(unittest.TestCase):
 
             failures, _payload = audit_final_release(_preflight(bundle, installer), bundle, installer)
 
-        self.assertIn("final installer must be named OmniDictate_Setup_v3.0.0.exe", failures)
+        self.assertIn(f"final installer must be named {self._installer_name()}", failures)
         self.assertIn("final installer path must not use smoke artifact naming", failures)
 
     def test_missing_artifacts_and_failed_preflight_do_not_pass(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             bundle = root / "dist-whisper-final" / "OmniDictate"
-            installer = root / "installer-whisper-final" / "OmniDictate_Setup_v3.0.0.exe"
+            installer = root / "installer-whisper-final" / self._installer_name()
 
             failures, _payload = audit_final_release(_preflight(bundle, installer, status="preflight-failed"), bundle, installer)
 
@@ -83,7 +87,7 @@ class FinalReleaseGateAuditTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             bundle = root / "dist-whisper-final" / "OmniDictate"
-            installer = root / "installer-whisper-final" / "OmniDictate_Setup_v3.0.0.exe"
+            installer = root / "installer-whisper-final" / self._installer_name()
             preflight = root / "preflight.json"
             report = root / "final-report.json"
             bundle.mkdir(parents=True)

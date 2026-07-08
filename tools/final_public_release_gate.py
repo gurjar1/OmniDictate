@@ -8,6 +8,11 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from app_updates import APP_VERSION
+
 PYTHON = ROOT / "venv" / "Scripts" / "python.exe"
 PYINSTALLER = ROOT / "venv" / "Scripts" / "pyinstaller.exe"
 ISCC = Path(r"C:\Program Files (x86)\Inno Setup 6\ISCC.exe")
@@ -15,13 +20,13 @@ FINAL_DIST = Path(r"smoke_test_assets\packaging\dist-whisper-final")
 FINAL_BUNDLE = FINAL_DIST / "OmniDictate"
 FINAL_BUILD = Path(r"smoke_test_assets\packaging\build-whisper-final")
 FINAL_INSTALLER_DIR = Path(r"smoke_test_assets\packaging\installer-whisper-final")
-FINAL_INSTALLER = FINAL_INSTALLER_DIR / "OmniDictate_Setup_v3.0.0.exe"
+FINAL_INSTALLER = FINAL_INSTALLER_DIR / f"OmniDictate_Setup_v{APP_VERSION}.exe"
 FINAL_INSTALL_DIR = Path(os.environ.get("LOCALAPPDATA", str(ROOT))) / "OmniDictate"
 FINAL_SMOKE_INSTALL_DIR = Path(os.environ.get("LOCALAPPDATA", str(ROOT))) / "OmniDictateFinalSmoke"
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run the final public v3.0.0 release artifact gate.")
+    parser = argparse.ArgumentParser(description=f"Run the final public v{APP_VERSION} release artifact gate.")
     parser.add_argument(
         "--preflight-report",
         default=r"smoke_test_assets\packaging\final-release-preflight.json",
@@ -76,7 +81,7 @@ def build_commands(args: argparse.Namespace) -> tuple[list[dict[str, object]], d
             "name": "Inno Setup final installer",
             "command": [
                 str(ISCC),
-                "/DAppVersion=3.0.0",
+                f"/DAppVersion={APP_VERSION}",
                 f"/DSourceDir={_repo_rel(FINAL_BUNDLE)}",
                 f"/DInstallerOutputDir={_repo_rel(FINAL_INSTALLER_DIR)}",
                 "/DCompressionMode=none",

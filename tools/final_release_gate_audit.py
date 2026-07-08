@@ -10,12 +10,14 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-EXPECTED_INSTALLER_NAME = "OmniDictate_Setup_v3.0.0.exe"
+from app_updates import APP_VERSION
+
+EXPECTED_INSTALLER_NAME = f"OmniDictate_Setup_v{APP_VERSION}.exe"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Validate whether final v3.0.0 artifacts are ready for publication."
+        description=f"Validate whether final v{APP_VERSION} artifacts are ready for publication."
     )
     parser.add_argument("--preflight-report", required=True, help="JSON from final_release_preflight.py --report-json.")
     parser.add_argument(
@@ -25,7 +27,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--installer",
-        default=r"smoke_test_assets\packaging\installer-whisper-final\OmniDictate_Setup_v3.0.0.exe",
+        default=rf"smoke_test_assets\packaging\installer-whisper-final\OmniDictate_Setup_v{APP_VERSION}.exe",
         help="Final public installer executable.",
     )
     parser.add_argument("--max-bundle-mb", type=float, default=330.0)
